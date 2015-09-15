@@ -60,7 +60,7 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
     var dayFormat: daysOfWeekFormat = daysOfWeekFormat.ThreeLetters
     var needSeparator = false
     var calendarCollectionView : UICollectionView!
-    var calendarDirection : UICollectionViewScrollDirection = .Vertical
+    var calendarDirection : UICollectionViewScrollDirection = .Horizontal
 
     
     init(frame: CGRect?, needSeparator: Bool?, dayFormat: daysOfWeekFormat?, calendarScrollDirection: UICollectionViewScrollDirection) {
