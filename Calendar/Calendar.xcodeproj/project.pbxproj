@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C96EE9D21BA81A5F00B375E8 /* AGNT Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96EE9D11BA81A5F00B375E8 /* AGNT Constants.swift */; };
+		C96EE9D61BA81B1800B375E8 /* DateHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96EE9D51BA81B1800B375E8 /* DateHelper.swift */; };
 		C97DA7ED1BA1540800FFAB8C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C97DA7EC1BA1540800FFAB8C /* AppDelegate.swift */; };
 		C97DA7EF1BA1540800FFAB8C /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C97DA7EE1BA1540800FFAB8C /* ViewController.swift */; };
 		C97DA7F21BA1540800FFAB8C /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C97DA7F01BA1540800FFAB8C /* Main.storyboard */; };
@@ -16,6 +18,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		C96EE9D11BA81A5F00B375E8 /* AGNT Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "AGNT Constants.swift"; sourceTree = "<group>"; };
+		C96EE9D51BA81B1800B375E8 /* DateHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DateHelper.swift; sourceTree = "<group>"; };
 		C97DA7E91BA1540800FFAB8C /* Calendar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Calendar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C97DA7EC1BA1540800FFAB8C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C97DA7EE1BA1540800FFAB8C /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -58,6 +62,8 @@
 			children = (
 				C97DA7EC1BA1540800FFAB8C /* AppDelegate.swift */,
 				C97DA7FE1BA1553C00FFAB8C /* CustomizableCalendar.swift */,
+				C96EE9D51BA81B1800B375E8 /* DateHelper.swift */,
+				C96EE9D11BA81A5F00B375E8 /* AGNT Constants.swift */,
 				C97DA7EE1BA1540800FFAB8C /* ViewController.swift */,
 				C97DA7F01BA1540800FFAB8C /* Main.storyboard */,
 				C97DA7F31BA1540800FFAB8C /* Assets.xcassets */,
@@ -138,7 +144,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C96EE9D61BA81B1800B375E8 /* DateHelper.swift in Sources */,
 				C97DA7EF1BA1540800FFAB8C /* ViewController.swift in Sources */,
+				C96EE9D21BA81A5F00B375E8 /* AGNT Constants.swift in Sources */,
 				C97DA7ED1BA1540800FFAB8C /* AppDelegate.swift in Sources */,
 				C97DA7FF1BA1553C00FFAB8C /* CustomizableCalendar.swift in Sources */,
 			);

@@ -32,6 +32,7 @@ protocol CustomizableCalendarDataSource {
 
 class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UIScrollViewDelegate {
     
+    let dateHelper = DateHelper()
     var calendarTarget : NSObject!
     var delegate : CustomizableCalendarDelegate?
     var dataSource : CustomizableCalendarDataSource?
@@ -43,12 +44,9 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
     var eventListBlue = [NSDate]()
     var eventListBlueStructured = [dateStructure]()
     
-    let monthDictionary = [1:"January",2:"February",3:"March",4:"April",5:"May",6:"June",7:"July",8:"August",9:"September",10:"October",11:"November",12:"December"]
     var date = dateStructure(day: 0, month: 0, year: 0)
     
-    let defaultFrame = CGRect(x: 0, y: 0, width: 375, height: 299)
-    var calendarFrame = CGRect(x: 0, y: 0, width: 375, height: 299)
-    
+    var calendarFrame = defaultFrameForCalendar
     var calendarBackgroundColor = UIColor.blackColor()
     var dateColor = UIColor.whiteColor()
     var dateHighlightedColor = UIColor.grayColor()
@@ -57,8 +55,8 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
     var separatorColor = UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.5)
     var daysOfWeekColor = UIColor(red: 0.698, green: 0, blue: 0, alpha: 1)
     
-    var dateFont = UIFont(name: "HelveticaNeue-Light", size: 16)
-    var dayOfWeekFont = UIFont(name: "HelveticaNeue-Light", size: 16)
+    var dateFont = defaultFontForCalendar
+    var dayOfWeekFont = defaultFontForCalendar
     var dayFormat: daysOfWeekFormat = daysOfWeekFormat.ThreeLetters
     var needSeparator = false
     var calendarCollectionView : UICollectionView!
@@ -71,8 +69,8 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
             self.calendarFrame = frame
             
         } else {
-            super.init(frame: defaultFrame)
-            self.calendarFrame = defaultFrame
+            super.init(frame: defaultFrameForCalendar)
+            self.calendarFrame = defaultFrameForCalendar
         }
         if let needSeparator = needSeparator {
             self.needSeparator = needSeparator
@@ -101,7 +99,7 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
             eventListBlue = dataSource.calendarEventsForBlueRing(self)
         }
         if let delegate = self.delegate {
-            let changesMade = monthYearStructure(fromMonth: getDate().month, fromMonthName: monthDictionary[getDate().month]!, fromYear: getDate().year, toMonth: getDate().month, toMonthName: monthDictionary[getDate().month]!, toYear: getDate().year)
+            let changesMade = monthYearStructure(fromMonth: dateHelper.getDate().month, fromMonthName: monthDictionary[dateHelper.getDate().month]!, fromYear: dateHelper.getDate().year, toMonth: dateHelper.getDate().month, toMonthName: monthDictionary[dateHelper.getDate().month]!, toYear: dateHelper.getDate().year)
             delegate.calendar(self, monthChange: changesMade)
         }
         formatEvents()
@@ -151,10 +149,6 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         let cell = calendarCollectionView.dequeueReusableCellWithReuseIdentifier("cell", forIndexPath: indexPath)
         cell.backgroundColor = UIColor.clearColor()
-//        let subViews = cell.contentView.subviews
-//        for subView in subviews {
-//            subView.removeFromSuperview()
-//        }
         cell.contentView.addSubview(monthsInMemory[indexPath.row])
         return cell
     }
@@ -229,14 +223,14 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
         let buttonHeight = buttonsView.frame.size.height/6
         let buttonWidth = buttonsView.frame.size.width/7
         
-        var startDay = getDayOfWeek(String(date1.year)+"-"+String(date1.month)+"-01")! - 1
+        var startDay = dateHelper.getDayOfWeek(String(date1.year)+"-"+String(date1.month)+"-01")! - 1
         print(startDay)
         var dateButtons = [UIButton]()
         var lines = [UIView]()
         var days = 0
         var count = 0
         
-        let maxDays = getMaxDays(date1.year, month: date1.month)
+        let maxDays = dateHelper.getMaxDays(date1.year, month: date1.month)
         
         for i in 0...5 {
             for j in 0...6 {
@@ -247,7 +241,7 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
                     dateButtons[days].titleLabel?.font = dateFont
                     dateButtons[days].setTitleColor(dateColor, forState: UIControlState.Normal)
                     dateButtons[days].setTitleColor(dateHighlightedColor, forState: UIControlState.Highlighted)
-                    if date1.year == getDate().year && date1.month == getDate().month && days+1 == getDate().day {
+                    if date1.year == dateHelper.getDate().year && date1.month == dateHelper.getDate().month && days+1 == dateHelper.getDate().day {
                         dateButtons[days].backgroundColor = todayColor
                         dateButtons[days].layer.cornerRadius = dateButtons[days].frame.size.width/2 
                     }
@@ -312,72 +306,9 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
             viewToAddOn.addSubview(dayOfWeek[i])
         }
     }
-
-}
-
-
-extension CustomizableCalendar {
-    
-    func getDayOfWeek(today:String) -> Int? {
-        let formatter  = NSDateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        if let todayDate = formatter.dateFromString(today) {
-            let myCalendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
-            let myComponents = myCalendar.components(.Weekday, fromDate: todayDate)
-            let weekDay = myComponents.weekday
-            return weekDay
-        } else {
-            return nil
-        }
-    }
-    
-    func getMaxDays(year: Int, month: Int) -> Int {
-        let numberOfDays : Int
-        switch month {
-        case 1: numberOfDays = 31
-        case 2: numberOfDays = leapCheck(year)
-        case 3: numberOfDays = 31
-        case 4: numberOfDays = 30
-        case 5: numberOfDays = 31
-        case 6: numberOfDays = 30
-        case 7: numberOfDays = 31
-        case 8: numberOfDays = 31
-        case 9: numberOfDays = 30
-        case 10: numberOfDays = 31
-        case 11: numberOfDays = 30
-        case 12: numberOfDays = 30
-        default: numberOfDays = 0
-        }
-        return numberOfDays
-    }
-    
-    func leapCheck(year:Int) -> Int {
-        if year%4 == 0 {
-            if year%100 == 0 {
-                if year%400 == 0 {
-                    return 29
-                }
-                else {
-                    return 28
-                }
-            }
-            return 29
-        }
-        else {
-            return 28
-        }
-    }
-    
-    func getDate() -> dateStructure {
-        let formatter = NSDateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss ZZZ"
-        let localDateTime = formatter.stringFromDate(NSDate())
-        let date = dateStructure(day: Int(localDateTime[advance(localDateTime.startIndex, 8)...advance(localDateTime.startIndex, 9)])!, month: Int(localDateTime[advance(localDateTime.startIndex, 5)...advance(localDateTime.startIndex, 6)])!, year: Int(localDateTime[advance(localDateTime.startIndex, 0)...advance(localDateTime.startIndex, 3)])!)
-        return date
-    }
     
     func setToday() {
-        date = getDate()
+        date = dateHelper.getDate()
         monthsInMemory[1] = createDateButtons(date)
         monthsArray[1] = date
         var month = date.month - 1
@@ -434,43 +365,24 @@ extension CustomizableCalendar {
         //        }
         //        date = (date.0,month,year)
         //        createDateButtons(date)
-        //        
+        //
     }
+
+}
+
+
+extension CustomizableCalendar {
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
 }
 
-enum daysOfWeekFormat {
-    case SingleLetter
-    case ThreeLetters
-    case FullName
-}
 
-enum monthOfYear: String {
-    case January = "January"
-    case February = "February"
-    case March = "March"
-    case April = "April"
-    case May = "May"
-    case June = "June"
-    case July = "July"
-    case August = "August"
-    case September = "September"
-    case October = "October"
-    case November = "November"
-    case December = "December"
-}
-
-struct dateStructure {
-    var day : Int
-    var month : Int
-    var year : Int
-}
-
-struct monthYearStructure {
-    var fromMonth : Int
-    var fromMonthName : String
-    var fromYear : Int
-    var toMonth : Int
-    var toMonthName : String
-    var toYear : Int
-}
