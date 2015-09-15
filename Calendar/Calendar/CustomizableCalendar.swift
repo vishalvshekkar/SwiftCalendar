@@ -246,6 +246,10 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
         setToday()
         calendarCollectionView.reloadData()
         calendarCollectionView.scrollToItemAtIndexPath(NSIndexPath(forItem: 1, inSection: 0), atScrollPosition: UICollectionViewScrollPosition.CenteredHorizontally, animated: true)
+        if let delegate = self.delegate {
+            let changesMade = monthYearStructure(fromMonth: dateHelper.getDate().month, fromMonthName: monthDictionary[dateHelper.getDate().month]!, fromYear: dateHelper.getDate().year, toMonth: dateHelper.getDate().month, toMonthName: monthDictionary[dateHelper.getDate().month]!, toYear: dateHelper.getDate().year)
+            delegate.calendar(self, monthChange: changesMade)
+        }
     }
 
     func createDateButtons(date1: dateStructure) -> UIView {
