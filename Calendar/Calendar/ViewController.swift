@@ -24,6 +24,7 @@ class ViewController: UIViewController, CustomizableCalendarDelegate, Customizab
     }
     
     func calendarSetup() {
+        
         let calendarFrame = CGRect(x: 0, y: 120, width: 375, height: 375)
         let color = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1.0)
         myCalendar = CustomizableCalendar(frame: calendarFrame, needSeparator: false, dayFormat: daysOfWeekFormat.ThreeLetters, calendarScrollDirection: UICollectionViewScrollDirection.Horizontal)
