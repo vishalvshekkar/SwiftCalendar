@@ -90,7 +90,7 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
     
     
     override func layoutSubviews() {
-        for _ in 1...3 {
+        for _ in 1...5 {
             monthsInMemory.append(UIView(frame: CGRectMake(0, 0, calendarFrame.size.width, calendarFrame.size.height)))
             let date = dateStructure(day: 0, month: 0, year: 0)
             monthsArray.append(date)
@@ -120,10 +120,10 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
         calendarCollectionView.dataSource = self
         calendarCollectionView.delegate = self
         if calendarDirection == .Horizontal {
-            calendarCollectionView.scrollToItemAtIndexPath(NSIndexPath(forItem: 1, inSection: 0), atScrollPosition: UICollectionViewScrollPosition.CenteredHorizontally, animated: false)
+            calendarCollectionView.scrollToItemAtIndexPath(NSIndexPath(forItem: 2, inSection: 0), atScrollPosition: UICollectionViewScrollPosition.CenteredHorizontally, animated: false)
         }
         else {
-            calendarCollectionView.scrollToItemAtIndexPath(NSIndexPath(forItem: 1, inSection: 0), atScrollPosition: UICollectionViewScrollPosition.CenteredVertically, animated: false)
+            calendarCollectionView.scrollToItemAtIndexPath(NSIndexPath(forItem: 2, inSection: 0), atScrollPosition: UICollectionViewScrollPosition.CenteredVertically, animated: false)
         }
         self.backgroundColor = calendarBackgroundColor
         calendarCollectionView.registerClass(UICollectionViewCell.self, forCellWithReuseIdentifier: "cell")
@@ -150,7 +150,7 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
     }
     
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 3
+        return 5
     }
     
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
@@ -164,7 +164,7 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
         let presentPoint = scrollView.contentOffset
         print(presentPoint.x)
         if calendarDirection == .Horizontal {
-            if presentPoint.x < calendarFrame.size.width && presentPoint.x >= 0.0 {
+            if presentPoint.x >= 0.0 && presentPoint.x < calendarFrame.size.width {
                 previousMonth()
             }
             else if presentPoint.x >= calendarFrame.size.width && presentPoint.x < calendarFrame.size.width * 2 {
@@ -350,9 +350,8 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
     
     func setToday() {
         date = dateHelper.getDate()
-        monthsInMemory[1] = createDateButtons(date)
-        monthsArray[1] = date
-        var month = date.month - 1
+        
+        var month = date.month - 2
         var year = date.year
         if month <= 0 {
             year--
@@ -360,14 +359,36 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
         }
         monthsArray[0] = dateStructure(day: date.day, month: month, year: year)
         monthsInMemory[0] = createDateButtons(monthsArray[0])
+        
+        month = date.month - 1
+        year = date.year
+        if month <= 0 {
+            year--
+            month = 12 - month
+        }
+        monthsArray[1] = dateStructure(day: date.day, month: month, year: year)
+        monthsInMemory[1] = createDateButtons(monthsArray[1])
+        
+        monthsArray[2] = date
+        monthsInMemory[2] = createDateButtons(date)
+        
         month = date.month + 1
         year = date.year
         if month > 12 {
             year++
             month = month%12
         }
-        monthsArray[2] = dateStructure(day: date.day, month: month, year: year)
-        monthsInMemory[2] = createDateButtons(monthsArray[2])
+        monthsArray[3] = dateStructure(day: date.day, month: month, year: year)
+        monthsInMemory[3] = createDateButtons(monthsArray[3])
+        
+        month = date.month + 2
+        year = date.year
+        if month > 12 {
+            year++
+            month = month%12
+        }
+        monthsArray[4] = dateStructure(day: date.day, month: month, year: year)
+        monthsInMemory[4] = createDateButtons(monthsArray[4])
     }
     
     func forwardMonthAction(sender: AnyObject) {
