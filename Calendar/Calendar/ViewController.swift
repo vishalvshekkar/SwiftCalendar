@@ -26,7 +26,7 @@ class ViewController: UIViewController, CustomizableCalendarDelegate, Customizab
     func calendarSetup() {
         let calendarFrame = CGRect(x: 0, y: 120, width: 320, height: 320)
         let color = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1.0)
-        myCalendar = CustomizableCalendar(frame: calendarFrame, needSeparator: false, dayFormat: daysOfWeekFormat.ThreeLetters)
+        myCalendar = CustomizableCalendar(frame: calendarFrame, needSeparator: false, dayFormat: daysOfWeekFormat.ThreeLetters, calendarScrollDirection: UICollectionViewScrollDirection.Horizontal)
         myCalendar.calendarTarget = self
         let calendarFont = UIFont(name: "HelveticaNeue-Light", size: 15) // AppleSDGothicNeo-Light ArialMT  Avenir-Oblique HelveticaNeue-UltraLight MarkerFelt-Thin AmericanTypewriter HelveticaNeue-Light
         myCalendar.dateFont = calendarFont
