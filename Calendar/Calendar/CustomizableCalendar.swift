@@ -19,11 +19,11 @@ protocol CustomizableCalendarDelegate {
 
 protocol CustomizableCalendarDataSource {
     
-    //Pass along an array of dates that need to be highlighted in Red
-    func calendarEventsForRedRing(calendar: CustomizableCalendar) -> [NSDate]
+    //Pass the number of Event types to be Highlighted
+    func numberOfeventTypes(calendar: CustomizableCalendar) -> Int
     
-    //Pass along an array of dates that need to be highlighted in Blue
-    func calendarEventsForBlueRing(calendar: CustomizableCalendar) -> [NSDate]
+    //Pass along an array of dates and the highlight Image
+    func eventDetails(calendar: CustomizableCalendar, forEventType: Int) -> eventHighlightStruct
     
     //Format for the date that needs to be returned
     func dateFormatRequired(calendar: CustomizableCalendar) -> String
@@ -62,6 +62,10 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
     var calendarCollectionView : UICollectionView!
     var calendarDirection : UICollectionViewScrollDirection = .Horizontal
     var previousPoint : CGPoint!
+    let calendarMonthCellIdentifier = "cell"
+    
+    var numberOfEventTypes = 0
+    var events = [eventHighlightStruct]()
 
     
     init(frame: CGRect?, needSeparator: Bool?, dayFormat: daysOfWeekFormat?, calendarScrollDirection: UICollectionViewScrollDirection) {
@@ -85,7 +89,7 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
     }
 
     required init(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
+        super.init(coder: aDecoder)!
         fatalError("init(coder:) has not been implemented")
     }
     
@@ -94,14 +98,15 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
         
         eventListRed = []
         if let dataSource = self.dataSource {
-            eventListRed = dataSource.calendarEventsForRedRing(self)
-            eventListBlue = dataSource.calendarEventsForBlueRing(self)
+            numberOfEventTypes = dataSource.numberOfeventTypes(self)
+            for eventType in 0..<numberOfEventTypes {
+                events.append(dataSource.eventDetails(self, forEventType: eventType))
+            }
         }
         if let delegate = self.delegate {
             let changesMade = monthYearStructure(fromMonth: dateHelper.getDate().month, fromMonthName: monthDictionary[dateHelper.getDate().month]!, fromYear: dateHelper.getDate().year, toMonth: dateHelper.getDate().month, toMonthName: monthDictionary[dateHelper.getDate().month]!, toYear: dateHelper.getDate().year)
             delegate.calendar(self, monthChange: changesMade)
         }
-        formatEvents()
         setToday()
         setUpCollectionView()
         
@@ -125,35 +130,18 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
             previousPoint = CGPoint(x: 0.0, y: calendarFrame.size.height * 2)
         }
         self.backgroundColor = calendarBackgroundColor
-        calendarCollectionView.registerClass(UICollectionViewCell.self, forCellWithReuseIdentifier: "cell")
+        calendarCollectionView.registerClass(UICollectionViewCell.self, forCellWithReuseIdentifier: calendarMonthCellIdentifier)
         calendarCollectionView.pagingEnabled = true
         self.addSubview(calendarCollectionView)
     }
-    
-    func formatEvents() {
-        for event in eventListRed {
-            let formatter = NSDateFormatter()
-            formatter.dateFormat = "yyyy-MM-dd HH:mm:ss ZZZ"
-            let localDateTime = formatter.stringFromDate(event)
-            let eventStructure = dateStructure(day: Int(localDateTime[advance(localDateTime.startIndex, 8)...advance(localDateTime.startIndex, 9)])!, month: Int(localDateTime[advance(localDateTime.startIndex, 5)...advance(localDateTime.startIndex, 6)])!, year: Int(localDateTime[advance(localDateTime.startIndex, 0)...advance(localDateTime.startIndex, 3)])!)
-            eventListRedStructured.append(eventStructure)
-        }
-        
-        for event in eventListBlue {
-            let formatter = NSDateFormatter()
-            formatter.dateFormat = "yyyy-MM-dd HH:mm:ss ZZZ"
-            let localDateTime = formatter.stringFromDate(event)
-            let eventStructure = dateStructure(day: Int(localDateTime[advance(localDateTime.startIndex, 8)...advance(localDateTime.startIndex, 9)])!, month: Int(localDateTime[advance(localDateTime.startIndex, 5)...advance(localDateTime.startIndex, 6)])!, year: Int(localDateTime[advance(localDateTime.startIndex, 0)...advance(localDateTime.startIndex, 3)])!)
-            eventListBlueStructured.append(eventStructure)
-        }
-    }
+
     
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return monthsInMemory.count - 1
     }
     
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
-        let cell = calendarCollectionView.dequeueReusableCellWithReuseIdentifier("cell", forIndexPath: indexPath)
+        let cell = calendarCollectionView.dequeueReusableCellWithReuseIdentifier(calendarMonthCellIdentifier, forIndexPath: indexPath)
         cell.backgroundColor = UIColor.clearColor()
         cell.contentView.addSubview(monthsInMemory[indexPath.row])
         return cell
@@ -165,26 +153,26 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
         let presentIndex = calendarCollectionView.indexPathForItemAtPoint(scrollView.contentOffset)!
         if calendarDirection == .Horizontal {
             if scrollView.contentOffset.x <= previousPoint.x {
-                if presentIndex.item <= monthsInMemory.count/2 {
+//                if presentIndex.item <= monthsInMemory.count/2 {
                     previousMonth(presentIndex)
-                }
+//                }
             }
             else {
-                if presentIndex.item >= monthsInMemory.count/2 {
+//                if presentIndex.item >= monthsInMemory.count/2 {
                     nextMonth(presentIndex)
-                }
+//                }
             }
         }
         else if calendarDirection == .Vertical {
             if scrollView.contentOffset.y <= previousPoint.y {
-                if presentIndex.item <= monthsInMemory.count/2 {
+//                if presentIndex.item <= monthsInMemory.count/2 {
                     previousMonth(presentIndex)
-                }
+//                }
             }
             else {
-                if presentIndex.item >= monthsInMemory.count/2 {
+//                if presentIndex.item >= monthsInMemory.count/2 {
                     nextMonth(presentIndex)
-                }
+//                }
             }
         }
         previousPoint = presentPoint
@@ -210,6 +198,10 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
             calendarCollectionView.scrollToItemAtIndexPath(NSIndexPath(forItem: presentIndex.item + 1, inSection: 0), atScrollPosition: UICollectionViewScrollPosition.CenteredVertically, animated: false)
             previousPoint = CGPoint(x: 0.0, y: calendarFrame.size.height * 2)
         }
+        if let delegate = self.delegate {
+            let changesMade = monthYearStructure(fromMonth: monthsArray[presentIndex.item + 2].month, fromMonthName: monthDictionary[monthsArray[presentIndex.item + 2].month]!, fromYear: monthsArray[presentIndex.item + 2].year, toMonth: monthsArray[presentIndex.item + 1].month, toMonthName: monthDictionary[monthsArray[presentIndex.item + 1].month]!, toYear: monthsArray[presentIndex.item + 1].year)
+            delegate.calendar(self, monthChange: changesMade)
+        }
         
     }
     
@@ -232,6 +224,10 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
         else {
             calendarCollectionView.scrollToItemAtIndexPath(NSIndexPath(forItem: presentIndex.item, inSection: 0), atScrollPosition: UICollectionViewScrollPosition.CenteredVertically, animated: false)
             previousPoint = CGPoint(x: 0.0, y: calendarFrame.size.height * 2)
+        }
+        if let delegate = self.delegate {
+            let changesMade = monthYearStructure(fromMonth: monthsArray[presentIndex.item - 1].month, fromMonthName: monthDictionary[monthsArray[presentIndex.item - 1].month]!, fromYear: monthsArray[presentIndex.item - 1].year, toMonth: monthsArray[presentIndex.item].month, toMonthName: monthDictionary[monthsArray[presentIndex.item].month]!, toYear: monthsArray[presentIndex.item].year)
+            delegate.calendar(self, monthChange: changesMade)
         }
     }
 
@@ -338,15 +334,17 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
                         dateButtons[days].layer.cornerRadius = dateButtons[days].frame.size.width/2 
                     }
                     
-                    for event in eventListRedStructured {
-                        if date1.year == event.year && date1.month == event.month && days+1 == event.day {
-                            dateButtons[days].setBackgroundImage(UIImage(named: "perfectorangecircle"), forState: UIControlState.Normal)
-                        }
-                    }
-                    
-                    for event in eventListBlueStructured {
-                        if date1.year == event.year && date1.month == event.month && days+1 == event.day {
-                            dateButtons[days].setBackgroundImage(UIImage(named: "bluering"), forState: UIControlState.Normal)
+                    for eventType in events {
+                        let highlightImage = eventType.highlightImage
+                        let events = eventType.eventsList
+                        for event in events {
+                            let formatter = NSDateFormatter()
+                            formatter.dateFormat = "yyyy-MM-dd HH:mm:ss ZZZ"
+                            let localDateTime = formatter.stringFromDate(event)
+                            let eventStructure = dateStructure(day: Int(localDateTime.substringWithRange(Range<String.Index>(start: localDateTime.startIndex.advancedBy(8), end: localDateTime.startIndex.advancedBy(10))))!, month: Int(localDateTime.substringWithRange(Range<String.Index>(start: localDateTime.startIndex.advancedBy(5), end: localDateTime.startIndex.advancedBy(7))))!, year: Int(localDateTime.substringWithRange(Range<String.Index>(start: localDateTime.startIndex.advancedBy(0), end: localDateTime.startIndex.advancedBy(4))))!)
+                            if date1.year == eventStructure.year && date1.month == eventStructure.month && days+1 == eventStructure.day {
+                                dateButtons[days].setBackgroundImage(highlightImage, forState: UIControlState.Normal)
+                            }
                         }
                     }
                     
@@ -411,9 +409,9 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
         //        }
         
         calendarCollectionView.scrollToItemAtIndexPath(NSIndexPath(forItem: 2, inSection: 0), atScrollPosition: UICollectionViewScrollPosition.CenteredHorizontally, animated: true)
-        //        if let delegate = self.delegate {
-        //            delegate.calendar(self, changedFromMonth: date.1, toMonth: month, fromYear: date.2, toYear: year)
-        //        }
+//                if let delegate = self.delegate {
+//                    delegate.calendar(self, changedFromMonth: date.1, toMonth: month, fromYear: date.2, toYear: year)
+//                }
         
         
         
