@@ -85,7 +85,7 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
     }
 
     required init(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
+        super.init(coder: aDecoder)!
         fatalError("init(coder:) has not been implemented")
     }
     
@@ -135,7 +135,9 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
             let formatter = NSDateFormatter()
             formatter.dateFormat = "yyyy-MM-dd HH:mm:ss ZZZ"
             let localDateTime = formatter.stringFromDate(event)
-            let eventStructure = dateStructure(day: Int(localDateTime[advance(localDateTime.startIndex, 8)...advance(localDateTime.startIndex, 9)])!, month: Int(localDateTime[advance(localDateTime.startIndex, 5)...advance(localDateTime.startIndex, 6)])!, year: Int(localDateTime[advance(localDateTime.startIndex, 0)...advance(localDateTime.startIndex, 3)])!)
+            let eventStructure = dateStructure(day: Int(localDateTime.substringWithRange(Range<String.Index>(start: localDateTime.startIndex.advancedBy(8), end: localDateTime.startIndex.advancedBy(10))))!, month: Int(localDateTime.substringWithRange(Range<String.Index>(start: localDateTime.startIndex.advancedBy(5), end: localDateTime.startIndex.advancedBy(7))))!, year: Int(localDateTime.substringWithRange(Range<String.Index>(start: localDateTime.startIndex.advancedBy(0), end: localDateTime.startIndex.advancedBy(4))))!)
+            
+            
             eventListRedStructured.append(eventStructure)
         }
         
@@ -143,7 +145,7 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
             let formatter = NSDateFormatter()
             formatter.dateFormat = "yyyy-MM-dd HH:mm:ss ZZZ"
             let localDateTime = formatter.stringFromDate(event)
-            let eventStructure = dateStructure(day: Int(localDateTime[advance(localDateTime.startIndex, 8)...advance(localDateTime.startIndex, 9)])!, month: Int(localDateTime[advance(localDateTime.startIndex, 5)...advance(localDateTime.startIndex, 6)])!, year: Int(localDateTime[advance(localDateTime.startIndex, 0)...advance(localDateTime.startIndex, 3)])!)
+            let eventStructure = dateStructure(day: Int(localDateTime.substringWithRange(Range<String.Index>(start: localDateTime.startIndex.advancedBy(8), end: localDateTime.startIndex.advancedBy(10))))!, month: Int(localDateTime.substringWithRange(Range<String.Index>(start: localDateTime.startIndex.advancedBy(5), end: localDateTime.startIndex.advancedBy(7))))!, year: Int(localDateTime.substringWithRange(Range<String.Index>(start: localDateTime.startIndex.advancedBy(0), end: localDateTime.startIndex.advancedBy(4))))!)
             eventListBlueStructured.append(eventStructure)
         }
     }
