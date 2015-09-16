@@ -26,7 +26,7 @@ class ViewController: UIViewController, CustomizableCalendarDelegate, Customizab
     func calendarSetup() {
         
         let calendarFrame = CGRect(x: 0, y: 120, width: 375, height: 375)
-        let color = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1.0)
+//        let color = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1.0)
         myCalendar = CustomizableCalendar(frame: calendarFrame, needSeparator: false, dayFormat: daysOfWeekFormat.SingleLetter, calendarScrollDirection: UICollectionViewScrollDirection.Vertical)
         myCalendar.calendarTarget = self
         let calendarFont = UIFont(name: "HelveticaNeue-Light", size: 15) // AppleSDGothicNeo-Light ArialMT  Avenir-Oblique HelveticaNeue-UltraLight MarkerFelt-Thin AmericanTypewriter HelveticaNeue-Light
@@ -61,6 +61,19 @@ class ViewController: UIViewController, CustomizableCalendarDelegate, Customizab
     
     
     //Calendar Data Source Methods
+    
+    func numberOfeventTypes(calendar: CustomizableCalendar) -> Int {
+        return 2
+    }
+    
+    func eventDetails(calendar: CustomizableCalendar, forEventType: Int) -> eventHighlightStruct {
+        if forEventType == 0 {
+            return eventHighlightStruct(highlightImage: UIImage(named: "redRing")!, eventsList: eventsForRed)
+        }
+        else {
+            return eventHighlightStruct(highlightImage: UIImage(named: "blueRing")!, eventsList: eventsForBlue)
+        }
+    }
     
     func calendarEventsForRedRing(calendar: CustomizableCalendar) -> [NSDate] {
         return eventsForRed
