@@ -27,9 +27,9 @@ class ViewController: UIViewController, CustomizableCalendarDelegate, Customizab
         
         let calendarFrame = CGRect(x: 0, y: 120, width: 375, height: 375)
 //        let color = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1.0)
-        myCalendar = CustomizableCalendar(frame: calendarFrame, needSeparator: false, dayFormat: daysOfWeekFormat.SingleLetter, calendarScrollDirection: UICollectionViewScrollDirection.Horizontal)
+        myCalendar = CustomizableCalendar(frame: calendarFrame, needSeparator: false, dayFormat: daysOfWeekFormat.SingleLetter, calendarScrollDirection: UICollectionViewScrollDirection.Vertical)
         myCalendar.calendarTarget = self
-        let calendarFont = UIFont(name: "HelveticaNeue-Light", size: 15) // AppleSDGothicNeo-Light ArialMT  Avenir-Oblique HelveticaNeue-UltraLight MarkerFelt-Thin AmericanTypewriter HelveticaNeue-Light
+        let calendarFont = UIFont(name: "HelveticaNeue-Light", size: 12) // AppleSDGothicNeo-Light ArialMT  Avenir-Oblique HelveticaNeue-UltraLight MarkerFelt-Thin AmericanTypewriter HelveticaNeue-Light
         myCalendar.dateFont = calendarFont
         myCalendar.dayOfWeekFont = calendarFont
         myCalendar.calendarBackgroundColor = UIColor.blackColor()
@@ -39,6 +39,8 @@ class ViewController: UIViewController, CustomizableCalendarDelegate, Customizab
         myCalendar.dataSource = self
         self.view.addSubview(myCalendar)
     }
+    
+    
     
     func doDate() {
         let dates = ["22/08/2015","16/09/2015","2/09/2015", "23/10/2015", "1/11/2015", "5/12/2015"]
@@ -69,6 +71,7 @@ class ViewController: UIViewController, CustomizableCalendarDelegate, Customizab
     func eventDetails(calendar: CustomizableCalendar, forEventType: Int) -> eventHighlightStruct {
         if forEventType == 0 {
             return eventHighlightStruct(highlightImage: UIImage(named: "redRing")!, eventsList: eventsForRed)
+            
         }
         else {
             return eventHighlightStruct(highlightImage: UIImage(named: "blueRing")!, eventsList: eventsForBlue)
@@ -78,6 +81,16 @@ class ViewController: UIViewController, CustomizableCalendarDelegate, Customizab
     
     func dateFormatRequired(calendar: CustomizableCalendar) -> String {
         return "MM-yyyy"
+    }
+    
+    func continuousEvent(calendar: CustomizableCalendar) -> [continuousEventStruct] {
+        return [continuousEventStruct(startDate: createNSDate("2/9/2015"), endDate: createNSDate("10/9/2015")), continuousEventStruct(startDate: createNSDate("14/09/2015"), endDate: createNSDate("19/09/2015")), continuousEventStruct(startDate: createNSDate("29/09/2015"), endDate: createNSDate("2/10/2015")), continuousEventStruct(startDate: createNSDate("5/10/2015"), endDate: createNSDate("8/10/2015")), continuousEventStruct(startDate: createNSDate("24/9/2015"), endDate: createNSDate("24/9/2015"))]
+    }
+    
+    func createNSDate(dateString: String) -> NSDate {
+        let dateFormatter = NSDateFormatter()
+        dateFormatter.dateFormat = "dd/MM/yyyy"
+        return dateFormatter.dateFromString(dateString)!
     }
     
     

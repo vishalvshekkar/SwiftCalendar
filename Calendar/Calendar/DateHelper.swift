@@ -24,7 +24,7 @@ class DateHelper: NSObject {
         case 9: numberOfDays = 30
         case 10: numberOfDays = 31
         case 11: numberOfDays = 30
-        case 12: numberOfDays = 30
+        case 12: numberOfDays = 31
         default: numberOfDays = 0
         }
         return numberOfDays

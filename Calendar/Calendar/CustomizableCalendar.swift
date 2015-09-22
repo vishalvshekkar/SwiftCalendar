@@ -27,6 +27,9 @@ protocol CustomizableCalendarDataSource {
     
     //Format for the date that needs to be returned
     func dateFormatRequired(calendar: CustomizableCalendar) -> String
+    
+    //Range of dates for continuous blocked state in calendar
+    func continuousEvent(calendar: CustomizableCalendar) -> [continuousEventStruct]
 }
 
 
@@ -39,10 +42,6 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
     
     var monthsInMemory = [UIView]()
     var monthsArray = [dateStructure]()
-    var eventListRed = [NSDate]()
-    var eventListRedStructured = [dateStructure]()
-    var eventListBlue = [NSDate]()
-    var eventListBlueStructured = [dateStructure]()
     
     var date = dateStructure(day: 0, month: 0, year: 0)
     
@@ -50,10 +49,14 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
     var calendarBackgroundColor = UIColor.blackColor()
     var dateColor = UIColor.whiteColor()
     var dateHighlightedColor = UIColor.grayColor()
-    var todayColor = UIColor(red: 0.25, green: 0.25, blue: 0.25, alpha: 1)
+    var todayColor = UIColor(red: 0.5, green: 0.1, blue: 0.1, alpha: 1.0)
     var todayHighlightedColor = UIColor(red: 0.698, green: 0, blue: 0, alpha: 0.5)
     var separatorColor = UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.5)
     var daysOfWeekColor = UIColor(red: 0.698, green: 0, blue: 0, alpha: 1)
+    var continuousEventColor = UIColor(red: 0.2, green: 0.2, blue: 0.2, alpha: 1.0)
+    var eventColor = UIColor(red: 10/100, green: 84/100, blue: 74/100, alpha: 1.0)
+    var eventCircleWidth: CGFloat = 1
+    var eventFitScale: CGFloat = 0.6
     
     var dateFont = defaultFontForCalendar
     var dayOfWeekFont = defaultFontForCalendar
@@ -62,10 +65,17 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
     var calendarCollectionView : UICollectionView!
     var calendarDirection : UICollectionViewScrollDirection = .Horizontal
     var previousPoint : CGPoint!
+    
     let calendarMonthCellIdentifier = "cell"
+    let threeLetterDays = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]
+    let singleLetterDays = ["S","M","T","W","T","F","S"]
     
     var numberOfEventTypes = 0
     var events = [eventHighlightStruct]()
+    var continuousEvents = [continuousEventStruct]()
+    var continuousEventsFormatted = [continuousEventsSplitStruct]()
+    
+    var presentMonth = Int()
 
     
     init(frame: CGRect?, needSeparator: Bool?, dayFormat: daysOfWeekFormat?, calendarScrollDirection: UICollectionViewScrollDirection) {
@@ -96,11 +106,15 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
     
     override func layoutSubviews() {
         
-        eventListRed = []
         if let dataSource = self.dataSource {
             numberOfEventTypes = dataSource.numberOfeventTypes(self)
             for eventType in 0..<numberOfEventTypes {
                 events.append(dataSource.eventDetails(self, forEventType: eventType))
+            }
+            
+            continuousEvents = dataSource.continuousEvent(self)
+            for contEvents in continuousEvents {
+                continuousEventsFormatted.append(continuousEventsSplitStruct(continuousEvent: contEvents))
             }
         }
         if let delegate = self.delegate {
@@ -143,36 +157,107 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         let cell = calendarCollectionView.dequeueReusableCellWithReuseIdentifier(calendarMonthCellIdentifier, forIndexPath: indexPath)
         cell.backgroundColor = UIColor.clearColor()
+        let subViews = cell.contentView.subviews
+        
+        for sVs in subViews {
+            sVs.removeFromSuperview()
+        }
         cell.contentView.addSubview(monthsInMemory[indexPath.row])
+//        print("Subview count is \(cell.contentView.subviews.count)")
         return cell
     }
     
     func scrollViewDidEndDecelerating(scrollView: UIScrollView) {
         
-        let presentPoint = scrollView.contentOffset
-        let presentIndex = calendarCollectionView.indexPathForItemAtPoint(scrollView.contentOffset)!
-        if calendarDirection == .Horizontal {
-            if scrollView.contentOffset.x <= previousPoint.x {
-//                if presentIndex.item <= monthsInMemory.count/2 {
-                    previousMonth(presentIndex)
-//                }
+        let ind = calendarCollectionView.indexPathsForVisibleItems()
+        
+        let cell = calendarCollectionView.cellForItemAtIndexPath(ind[0])!
+        let sVs = cell.contentView.subviews
+        
+        let sVs1 = sVs[0].subviews
+        var requiredView = UIView()
+        for views in sVs1 {
+            if views is UILabel {
+                
             }
             else {
-//                if presentIndex.item >= monthsInMemory.count/2 {
-                    nextMonth(presentIndex)
-//                }
+                requiredView = views
+            }
+        }
+        let sVs2 = requiredView.subviews
+//                print("\(sVs2.count)")
+        var maxTag = 0
+        for dateView in sVs2 {
+            if dateView.tag > maxTag {
+                maxTag = dateView.tag
+            }
+        }
+        for dateView in sVs2 {
+            if dateView.tag == maxTag {
+                if let dateButton = dateView as? UIButton {
+                    let frameOfLastButton = dateView.frame
+                    if frameOfLastButton.origin.y == 5 * calendarFrame.size.height*(6.0/7.0)/6 {
+                        print("Larger Frame")
+//                        UIView.animateWithDuration(0.4, animations: { () -> Void in
+//                            let presentFrame = self.frame
+//                            self.frame = CGRect(x: presentFrame.origin.x, y: presentFrame.origin.y, width: presentFrame.size.width, height: self.calendarFrame.size.height)
+//                            }, completion: { (myBoo) -> Void in
+//                                print("Complete")
+//                        })
+                    }
+                    else {
+                        print("Smaller Frame")
+//                        UIView.animateWithDuration(0.4, animations: { () -> Void in
+//                            let presentFrame = self.frame
+//                            self.frame = CGRect(x: presentFrame.origin.x, y: presentFrame.origin.y, width: presentFrame.size.width, height: self.calendarFrame.size.height - (self.calendarFrame.size.height*(6.0/7.0)/6))
+//                            }, completion: { (myBoo) -> Void in
+//                                print("Complete")
+//                        })
+                    }
+                }
+                else {
+                    print("Not a button!!!")
+                }
+                
+            }
+        }
+        print("MaxTag:\(maxTag)")
+        
+        checkForCalendarScroll(scrollView)
+    }
+    
+    func checkForCalendarScroll(scrollView: UIScrollView) {
+        let presentPoint = scrollView.contentOffset
+        print(scrollView.contentOffset)
+        let presentIndex = calendarCollectionView.indexPathForItemAtPoint(scrollView.contentOffset)!
+        
+        print(presentIndex.item)
+        if calendarDirection == .Horizontal {
+            if scrollView.contentOffset.x <= previousPoint.x {
+                //                if presentIndex.item <= monthsInMemory.count/2 {
+                presentMonth = presentIndex.item
+                previousMonth(presentIndex)
+                //                }
+            }
+            else {
+                //                if presentIndex.item >= monthsInMemory.count/2 {
+                presentMonth = presentIndex.item
+                nextMonth(presentIndex)
+                //                }
             }
         }
         else if calendarDirection == .Vertical {
             if scrollView.contentOffset.y <= previousPoint.y {
-//                if presentIndex.item <= monthsInMemory.count/2 {
-                    previousMonth(presentIndex)
-//                }
+                //                if presentIndex.item <= monthsInMemory.count/2 {
+                presentMonth = presentIndex.item
+                previousMonth(presentIndex)
+                //                }
             }
             else {
-//                if presentIndex.item >= monthsInMemory.count/2 {
-                    nextMonth(presentIndex)
-//                }
+                //                if presentIndex.item >= monthsInMemory.count/2 {
+                presentMonth = presentIndex.item
+                nextMonth(presentIndex)
+                //                }
             }
         }
         previousPoint = presentPoint
@@ -189,7 +274,7 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
         monthsArray.insert(dateStructure(day: leastMonth.day, month: month, year: year), atIndex: 0)
         monthsInMemory.insert(createDateButtons(monthsArray[0]), atIndex: 0)
         calendarCollectionView.reloadData()
-        print(monthsArray.count)
+//        print(monthsArray.count)
         if calendarDirection == .Horizontal {
             calendarCollectionView.scrollToItemAtIndexPath(NSIndexPath(forItem: presentIndex.item + 1, inSection: 0), atScrollPosition: UICollectionViewScrollPosition.CenteredHorizontally, animated: false)
             previousPoint = CGPoint(x: calendarFrame.size.width * 2, y: 0.0)
@@ -202,6 +287,7 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
             let changesMade = monthYearStructure(fromMonth: monthsArray[presentIndex.item + 2].month, fromMonthName: monthDictionary[monthsArray[presentIndex.item + 2].month]!, fromYear: monthsArray[presentIndex.item + 2].year, toMonth: monthsArray[presentIndex.item + 1].month, toMonthName: monthDictionary[monthsArray[presentIndex.item + 1].month]!, toYear: monthsArray[presentIndex.item + 1].year)
             delegate.calendar(self, monthChange: changesMade)
         }
+//        adjustFrame(presentIndex)
         
     }
     
@@ -216,7 +302,7 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
         monthsArray.append(dateStructure(day: maximumMonth.day, month: month, year: year))
         monthsInMemory.append(createDateButtons(monthsArray[monthsArray.count - 1]))
         calendarCollectionView.reloadData()
-        print(monthsArray.count)
+//        print(monthsArray.count)
         if calendarDirection == .Horizontal {
             calendarCollectionView.scrollToItemAtIndexPath(NSIndexPath(forItem: presentIndex.item, inSection: 0), atScrollPosition: UICollectionViewScrollPosition.CenteredHorizontally, animated: false)
             previousPoint = CGPoint(x: calendarFrame.size.width * 2, y: 0.0)
@@ -229,7 +315,40 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
             let changesMade = monthYearStructure(fromMonth: monthsArray[presentIndex.item - 1].month, fromMonthName: monthDictionary[monthsArray[presentIndex.item - 1].month]!, fromYear: monthsArray[presentIndex.item - 1].year, toMonth: monthsArray[presentIndex.item].month, toMonthName: monthDictionary[monthsArray[presentIndex.item].month]!, toYear: monthsArray[presentIndex.item].year)
             delegate.calendar(self, monthChange: changesMade)
         }
+//        adjustFrame(presentIndex)
     }
+    
+//    func adjustFrame(presentIndex: NSIndexPath) {
+//        print(presentIndex.item)
+//        print(presentIndex.section)
+//        let cellToAdjust = calendarCollectionView
+//        let sVs = cellToAdjust?.contentView.subviews
+//        
+//    }
+    
+//    func collectionView(collectionView: UICollectionView, willDisplayCell cell: UICollectionViewCell, forItemAtIndexPath indexPath: NSIndexPath) {
+//        let sVs = cell.contentView.subviews
+//        
+//        let sVs1 = sVs[0].subviews
+//        var requiredView = UIView()
+//        for views in sVs1 {
+//            if views is UILabel {
+//                
+//            }
+//            else {
+//                requiredView = views
+//            }
+//        }
+//        let sVs2 = requiredView.subviews
+////        print(sVs2.count)
+//        var maxTag = 0
+//        for dateView in sVs2 {
+//            if dateView.tag > maxTag {
+//                maxTag = dateView.tag
+//            }
+//        }
+//        print(maxTag)
+//    }
 
     func todayButton(sender: AnyObject) {
         setToday()
@@ -279,6 +398,7 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
         
         monthsArray[2] = date
         monthsInMemory[2] = createDateButtons(date)
+        presentMonth = 2
         
         month = date.month + 1
         year = date.year
@@ -302,6 +422,9 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
     func createDateButtons(date1: dateStructure) -> UIView {
         let baseView = UIView(frame: CGRectMake(0, 0, calendarFrame.size.width, calendarFrame.size.height))
         baseView.backgroundColor = calendarBackgroundColor
+        baseView.tag = Int(String(date1.month) + String(date1.year))!
+        print("tag is")
+        print(baseView.tag)
         createLabel(baseView)
         let buttonsViewFrame = CGRectMake(0, calendarFrame.size.height*(1.0/7.0), calendarFrame.size.width, calendarFrame.size.height*(6.0/7.0))
         let buttonsView = UIView()
@@ -310,6 +433,7 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
         baseView.addSubview(buttonsView)
         let buttonHeight = buttonsView.frame.size.height/6
         let buttonWidth = buttonsView.frame.size.width/7
+        
         
         var startDay = dateHelper.getDayOfWeek(String(date1.year)+"-"+String(date1.month)+"-01")! - 1
         print(startDay)
@@ -329,9 +453,16 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
                     dateButtons[days].titleLabel?.font = dateFont
                     dateButtons[days].setTitleColor(dateColor, forState: UIControlState.Normal)
                     dateButtons[days].setTitleColor(dateHighlightedColor, forState: UIControlState.Highlighted)
-                    if date1.year == dateHelper.getDate().year && date1.month == dateHelper.getDate().month && days+1 == dateHelper.getDate().day {
-                        dateButtons[days].backgroundColor = todayColor
-                        dateButtons[days].layer.cornerRadius = dateButtons[days].frame.size.width/2 
+                    
+                    let now = dateStructure(day: days+1, month: date1.month, year: date1.year)
+                    if now.year == dateHelper.getDate().year && now.month == dateHelper.getDate().month && now.day == dateHelper.getDate().day {
+//                        let cornerDiameter = (dateButtons[days].frame.size.width<dateButtons[days].frame.size.height) ? (dateButtons[days].frame.size.width) : (dateButtons[days].frame.size.height)
+                        let todayHighlightShapeLayer = CAShapeLayer()
+                        todayHighlightShapeLayer.frame = CGRect(x: dateButtons[days].frame.size.width*((1 - eventFitScale)/2) + eventCircleWidth/2, y: dateButtons[days].frame.size.height*((1 - eventFitScale)/2) + eventCircleWidth/2, width: dateButtons[days].frame.size.width*eventFitScale - eventCircleWidth/2, height: dateButtons[days].frame.size.height*eventFitScale - eventCircleWidth/2)
+                        todayHighlightShapeLayer.zPosition = -1
+                        dateButtons[days].layer.addSublayer(todayHighlightShapeLayer)
+                        todayHighlightShapeLayer.fillColor = todayColor.CGColor
+                        todayHighlightShapeLayer.path = UIBezierPath(roundedRect: todayHighlightShapeLayer.bounds, byRoundingCorners: UIRectCorner.AllCorners, cornerRadii: CGSize(width: todayHighlightShapeLayer.frame.size.height/2, height: todayHighlightShapeLayer.frame.size.height/2)).CGPath
                     }
                     
                     for eventType in events {
@@ -343,12 +474,121 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
                             let localDateTime = formatter.stringFromDate(event)
                             let eventStructure = dateStructure(day: Int(localDateTime.substringWithRange(Range<String.Index>(start: localDateTime.startIndex.advancedBy(8), end: localDateTime.startIndex.advancedBy(10))))!, month: Int(localDateTime.substringWithRange(Range<String.Index>(start: localDateTime.startIndex.advancedBy(5), end: localDateTime.startIndex.advancedBy(7))))!, year: Int(localDateTime.substringWithRange(Range<String.Index>(start: localDateTime.startIndex.advancedBy(0), end: localDateTime.startIndex.advancedBy(4))))!)
                             if date1.year == eventStructure.year && date1.month == eventStructure.month && days+1 == eventStructure.day {
-                                dateButtons[days].setBackgroundImage(highlightImage, forState: UIControlState.Normal)
+//                                dateButtons[days].setBackgroundImage(highlightImage, forState: UIControlState.Normal)
+                                let circleShapeLayer = CAShapeLayer()
+                                circleShapeLayer.frame = CGRect(x: dateButtons[days].frame.size.width*((1 - eventFitScale)/2) + eventCircleWidth/2, y: dateButtons[days].frame.size.height*((1 - eventFitScale)/2) + eventCircleWidth/2, width: dateButtons[days].frame.size.width*eventFitScale - eventCircleWidth/2, height: dateButtons[days].frame.size.height*eventFitScale - eventCircleWidth/2)
+                                circleShapeLayer.zPosition = -1
+                                dateButtons[days].layer.addSublayer(circleShapeLayer)
+                                circleShapeLayer.fillColor = UIColor.clearColor().CGColor
+                                circleShapeLayer.strokeColor = eventColor.CGColor
+                                circleShapeLayer.lineWidth = eventCircleWidth
+                                circleShapeLayer.path = UIBezierPath(roundedRect: circleShapeLayer.bounds, byRoundingCorners: UIRectCorner.AllCorners, cornerRadii: CGSize(width: circleShapeLayer.frame.size.height/2, height: circleShapeLayer.frame.size.height/2)).CGPath
                             }
                         }
                     }
                     
-                    dateButtons[days].tag = days+1
+                    for contEvent in continuousEventsFormatted {
+                        
+                        if contEvent.isSingleDayEvent {
+                            if dateStructure.areEqual(now, date2: contEvent.startDate) {
+                                let circleShapeLayer = CAShapeLayer()
+                                circleShapeLayer.frame = CGRect(x: dateButtons[days].frame.size.width*((1 - eventFitScale)/2), y: dateButtons[days].frame.size.height*((1 - eventFitScale)/2), width: dateButtons[days].frame.size.width*eventFitScale, height: dateButtons[days].frame.size.height*eventFitScale)
+                                circleShapeLayer.zPosition = -2
+                                dateButtons[days].layer.addSublayer(circleShapeLayer)
+                                circleShapeLayer.fillColor = continuousEventColor.CGColor
+                                circleShapeLayer.path = UIBezierPath(roundedRect: circleShapeLayer.bounds, byRoundingCorners: UIRectCorner.AllCorners, cornerRadii: CGSize(width: circleShapeLayer.frame.size.height/2, height: circleShapeLayer.frame.size.height/2)).CGPath
+                            }
+                        }
+                        else {
+                            if dateStructure.areEqual(now, date2: contEvent.startDate) {
+                                print("Start Date")
+                                let circleShapeLayer = CAShapeLayer()
+                                circleShapeLayer.frame = CGRect(x: dateButtons[days].frame.size.width*((1 - eventFitScale)/2), y: dateButtons[days].frame.size.height*((1 - eventFitScale)/2), width: dateButtons[days].frame.size.width*eventFitScale, height: dateButtons[days].frame.size.height*eventFitScale)
+                                circleShapeLayer.zPosition = -2
+                                dateButtons[days].layer.addSublayer(circleShapeLayer)
+                                circleShapeLayer.fillColor = continuousEventColor.CGColor
+                                circleShapeLayer.path = UIBezierPath(roundedRect: circleShapeLayer.bounds, byRoundingCorners: UIRectCorner.AllCorners, cornerRadii: CGSize(width: circleShapeLayer.frame.size.height/2, height: circleShapeLayer.frame.size.height/2)).CGPath
+                                
+                                let rectangleShapeLayer = CAShapeLayer()
+                                rectangleShapeLayer.frame = CGRect(x: dateButtons[days].frame.size.width/2, y: dateButtons[days].frame.size.height*((1 - eventFitScale)/2), width: dateButtons[days].frame.size.width/2+2, height: dateButtons[days].frame.size.height*eventFitScale)
+                                rectangleShapeLayer.zPosition = -2
+                                rectangleShapeLayer.path = UIBezierPath(rect: CGRect(x: 0, y: 0, width: rectangleShapeLayer.frame.size.width, height: rectangleShapeLayer.frame.size.height)).CGPath
+                                dateButtons[days].layer.addSublayer(rectangleShapeLayer)
+                                rectangleShapeLayer.fillColor = continuousEventColor.CGColor
+                            }
+                            else if dateStructure.isDateInBetween(now, lowerDate: contEvent.startDate, higherDate: contEvent.endDate) {
+                                print("Middle Date")
+                                let rectangleShapeLayer = CAShapeLayer()
+                                rectangleShapeLayer.frame = CGRect(x: 0, y: dateButtons[days].frame.size.height*((1 - eventFitScale)/2), width: dateButtons[days].frame.size.width+1, height: dateButtons[days].frame.size.height*eventFitScale)
+                                rectangleShapeLayer.zPosition = -2
+                                rectangleShapeLayer.path = UIBezierPath(rect: CGRect(x: 0, y: 0, width: rectangleShapeLayer.frame.size.width, height: rectangleShapeLayer.frame.size.height)).CGPath
+                                dateButtons[days].layer.addSublayer(rectangleShapeLayer)
+                                rectangleShapeLayer.fillColor = continuousEventColor.CGColor
+                            }
+                            else if dateStructure.areEqual(now, date2: contEvent.endDate) {
+                                print("End Date")
+                                let circleShapeLayer = CAShapeLayer()
+                                circleShapeLayer.frame = CGRect(x: dateButtons[days].frame.size.width*((1 - eventFitScale)/2), y: dateButtons[days].frame.size.height*((1 - eventFitScale)/2), width: dateButtons[days].frame.size.width*eventFitScale, height: dateButtons[days].frame.size.height*eventFitScale)
+                                circleShapeLayer.zPosition = -2
+                                dateButtons[days].layer.addSublayer(circleShapeLayer)
+                                circleShapeLayer.fillColor = continuousEventColor.CGColor
+                                circleShapeLayer.path = UIBezierPath(roundedRect: circleShapeLayer.bounds, byRoundingCorners: UIRectCorner.AllCorners, cornerRadii: CGSize(width: circleShapeLayer.frame.size.height/2, height: circleShapeLayer.frame.size.height/2)).CGPath
+                                
+                                let rectangleShapeLayer = CAShapeLayer()
+                                rectangleShapeLayer.frame = CGRect(x: 0, y: dateButtons[days].frame.size.height*((1 - eventFitScale)/2), width: dateButtons[days].frame.size.width/2+2, height: dateButtons[days].frame.size.height*eventFitScale)
+                                rectangleShapeLayer.zPosition = -2
+                                rectangleShapeLayer.path = UIBezierPath(rect: CGRect(x: 0, y: 0, width: rectangleShapeLayer.frame.size.width, height: rectangleShapeLayer.frame.size.height)).CGPath
+                                dateButtons[days].layer.addSublayer(rectangleShapeLayer)
+                                rectangleShapeLayer.fillColor = continuousEventColor.CGColor
+                            }
+                        }
+                        
+                    }
+                    
+//                    if date1.year == 2015 && date1.month == 9 {
+//                        let startDate = 14
+//                        let endDate = 19
+//                        if days+1 == startDate {
+//                            let rectShape1 = CAShapeLayer()
+//                            rectShape1.frame = CGRect(x: dateButtons[days].frame.size.width*0.1, y: dateButtons[days].frame.size.height*0.1, width: dateButtons[days].frame.size.width*0.8, height: dateButtons[days].frame.size.height*0.8)
+//                            rectShape1.zPosition = -1
+//                            dateButtons[days].layer.addSublayer(rectShape1)
+//                            rectShape1.fillColor = UIColor(red: 0.2, green: 0.2, blue: 0.2, alpha: 1.0).CGColor
+//                            rectShape1.path = UIBezierPath(roundedRect: rectShape1.bounds, byRoundingCorners: UIRectCorner.AllCorners, cornerRadii: CGSize(width: rectShape1.frame.size.height/2, height: rectShape1.frame.size.height/2)).CGPath
+//                            
+//                            let rect2 = CAShapeLayer()
+//                            rect2.frame = CGRect(x: dateButtons[days].frame.size.width/2, y: dateButtons[days].frame.size.height*0.1, width: dateButtons[days].frame.size.width/2+2, height: dateButtons[days].frame.size.height*0.8)
+//                            rect2.zPosition = -1
+//                            rect2.path = UIBezierPath(rect: CGRect(x: 0, y: 0, width: rect2.frame.size.width, height: rect2.frame.size.height)).CGPath
+//                            dateButtons[days].layer.addSublayer(rect2)
+//                            rect2.fillColor = UIColor(red: 0.2, green: 0.2, blue: 0.2, alpha: 1.0).CGColor
+//                        }
+//                        else if days+1 > startDate && days+1 < endDate {
+//                            let rect2 = CAShapeLayer()
+//                            rect2.frame = CGRect(x: 0, y: dateButtons[days].frame.size.height*0.1, width: dateButtons[days].frame.size.width+1, height: dateButtons[days].frame.size.height*0.8)
+//                            rect2.zPosition = -1
+//                            rect2.path = UIBezierPath(rect: CGRect(x: 0, y: 0, width: rect2.frame.size.width, height: rect2.frame.size.height)).CGPath
+//                            dateButtons[days].layer.addSublayer(rect2)
+//                            rect2.fillColor = UIColor(red: 0.2, green: 0.2, blue: 0.2, alpha: 1.0).CGColor
+//                        }
+//                        else if days+1 == endDate {
+//                            let rectShape1 = CAShapeLayer()
+//                            rectShape1.frame = CGRect(x: dateButtons[days].frame.size.width*0.1, y: dateButtons[days].frame.size.height*0.1, width: dateButtons[days].frame.size.width*0.8, height: dateButtons[days].frame.size.height*0.8)
+//                            rectShape1.zPosition = -1
+//                            dateButtons[days].layer.addSublayer(rectShape1)
+//                            rectShape1.fillColor = UIColor(red: 0.2, green: 0.2, blue: 0.2, alpha: 1.0).CGColor
+//                            rectShape1.path = UIBezierPath(roundedRect: rectShape1.bounds, byRoundingCorners: UIRectCorner.AllCorners, cornerRadii: CGSize(width: rectShape1.frame.size.height/2, height: rectShape1.frame.size.height/2)).CGPath
+//                            
+//                            let rect2 = CAShapeLayer()
+//                            rect2.frame = CGRect(x: 0, y: dateButtons[days].frame.size.height*0.1, width: dateButtons[days].frame.size.width/2+2, height: dateButtons[days].frame.size.height*0.8)
+//                            rect2.zPosition = -1
+//                            rect2.path = UIBezierPath(rect: CGRect(x: 0, y: 0, width: rect2.frame.size.width, height: rect2.frame.size.height)).CGPath
+//                            dateButtons[days].layer.addSublayer(rect2)
+//                            rect2.fillColor = UIColor(red: 0.2, green: 0.2, blue: 0.2, alpha: 1.0).CGColor
+//                        }
+//                    }
+                    
+                    dateButtons[days].tag = days + 1
                     dateButtons[days].addTarget(self, action: "didSelectDate:", forControlEvents: UIControlEvents.TouchUpInside)
                     buttonsView.addSubview(dateButtons[days])
                     days++
@@ -371,8 +611,9 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
     
     //Button action method
     func didSelectDate(sender: UIButton) {
+        
         if let delegate = self.delegate {
-            delegate.calendar(self, didSelectDay: dateStructure(day: sender.tag, month: monthsArray[1].month, year: monthsArray[1].year))
+            delegate.calendar(self, didSelectDay: dateStructure(day: sender.tag, month: monthsArray[presentMonth].month, year: monthsArray[presentMonth].year))
         }
     }
     
@@ -382,10 +623,10 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
         var dayOfWeek = [UILabel]()
         var weekDays = [String]()
         if dayFormat == .SingleLetter {
-            weekDays = ["S","M","T","W","T","F","S"]
+            weekDays = singleLetterDays
         }
         else {
-            weekDays = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]
+            weekDays = threeLetterDays
         }
         for i in 0...6 {
             dayOfWeek.append(UILabel(frame: CGRect(x: CGFloat(i) * labelWidth, y: CGFloat(0) , width: labelWidth, height: labelHeight)))
