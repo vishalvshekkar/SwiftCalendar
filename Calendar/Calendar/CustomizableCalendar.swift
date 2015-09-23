@@ -76,6 +76,8 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
     var continuousEventsFormatted = [continuousEventsSplitStruct]()
     
     var presentMonth = Int()
+    
+    var presentDate : dateStructure!
 
     
     init(frame: CGRect?, needSeparator: Bool?, dayFormat: daysOfWeekFormat?, calendarScrollDirection: UICollectionViewScrollDirection) {
@@ -283,10 +285,12 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
             calendarCollectionView.scrollToItemAtIndexPath(NSIndexPath(forItem: presentIndex.item + 1, inSection: 0), atScrollPosition: UICollectionViewScrollPosition.CenteredVertically, animated: false)
             previousPoint = CGPoint(x: 0.0, y: calendarFrame.size.height * 2)
         }
+        
         if let delegate = self.delegate {
             let changesMade = monthYearStructure(fromMonth: monthsArray[presentIndex.item + 2].month, fromMonthName: monthDictionary[monthsArray[presentIndex.item + 2].month]!, fromYear: monthsArray[presentIndex.item + 2].year, toMonth: monthsArray[presentIndex.item + 1].month, toMonthName: monthDictionary[monthsArray[presentIndex.item + 1].month]!, toYear: monthsArray[presentIndex.item + 1].year)
             delegate.calendar(self, monthChange: changesMade)
         }
+        presentDate = dateStructure(day: presentDate.day, month: monthsArray[presentIndex.item + 1].month, year: monthsArray[presentIndex.item + 1].year)
 //        adjustFrame(presentIndex)
         
     }
@@ -315,6 +319,7 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
             let changesMade = monthYearStructure(fromMonth: monthsArray[presentIndex.item - 1].month, fromMonthName: monthDictionary[monthsArray[presentIndex.item - 1].month]!, fromYear: monthsArray[presentIndex.item - 1].year, toMonth: monthsArray[presentIndex.item].month, toMonthName: monthDictionary[monthsArray[presentIndex.item].month]!, toYear: monthsArray[presentIndex.item].year)
             delegate.calendar(self, monthChange: changesMade)
         }
+        presentDate = dateStructure(day: presentDate.day, month: monthsArray[presentIndex.item].month, year: monthsArray[presentIndex.item].year)
 //        adjustFrame(presentIndex)
     }
     
@@ -399,6 +404,7 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
         monthsArray[2] = date
         monthsInMemory[2] = createDateButtons(date)
         presentMonth = 2
+        presentDate = date
         
         month = date.month + 1
         year = date.year
@@ -611,10 +617,11 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
     
     //Button action method
     func didSelectDate(sender: UIButton) {
-        
+        presentDate.day = sender.tag
         if let delegate = self.delegate {
-            delegate.calendar(self, didSelectDay: dateStructure(day: sender.tag, month: monthsArray[presentMonth].month, year: monthsArray[presentMonth].year))
+            delegate.calendar(self, didSelectDay: dateStructure(day: presentDate.day, month: presentDate.month, year: presentDate.year))
         }
+        
     }
     
     func createLabel(viewToAddOn: UIView) {

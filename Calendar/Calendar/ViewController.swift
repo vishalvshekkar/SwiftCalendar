@@ -84,7 +84,7 @@ class ViewController: UIViewController, CustomizableCalendarDelegate, Customizab
     }
     
     func continuousEvent(calendar: CustomizableCalendar) -> [continuousEventStruct] {
-        return [continuousEventStruct(startDate: createNSDate("2/9/2015"), endDate: createNSDate("10/9/2015")), continuousEventStruct(startDate: createNSDate("14/09/2015"), endDate: createNSDate("19/09/2015")), continuousEventStruct(startDate: createNSDate("29/09/2015"), endDate: createNSDate("2/10/2015")), continuousEventStruct(startDate: createNSDate("5/10/2015"), endDate: createNSDate("8/10/2015")), continuousEventStruct(startDate: createNSDate("24/9/2015"), endDate: createNSDate("24/9/2015"))]
+        return [continuousEventStruct(startDate: createNSDate("1/9/2015"), endDate: createNSDate("5/9/2015")), continuousEventStruct(startDate: createNSDate("7/09/2015"), endDate: createNSDate("09/09/2015")), continuousEventStruct(startDate: createNSDate("29/09/2015"), endDate: createNSDate("2/10/2015")), continuousEventStruct(startDate: createNSDate("5/10/2015"), endDate: createNSDate("8/10/2015")), continuousEventStruct(startDate: createNSDate("6/9/2015"), endDate: createNSDate("6/9/2015"))]
     }
     
     func createNSDate(dateString: String) -> NSDate {
