@@ -33,7 +33,7 @@ protocol CustomizableCalendarDataSource {
 }
 
 
-class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UIScrollViewDelegate {
+class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UIScrollViewDelegate {
     
     private let dateHelper = DateHelper()
     var calendarTarget : NSObject!
@@ -60,10 +60,10 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
     
     var dateFont = defaultFontForCalendar
     var dayOfWeekFont = defaultFontForCalendar
-    var dayFormat: daysOfWeekFormat = daysOfWeekFormat.ThreeLetters
+    var dayFormat: daysOfWeekFormat = daysOfWeekFormat.SingleLetter
     var needSeparator = false
     var calendarCollectionView : UICollectionView!
-    var calendarDirection : UICollectionViewScrollDirection = .Horizontal
+    var calendarDirection : UICollectionViewScrollDirection = .Vertical
     var previousPoint : CGPoint!
     
     let calendarMonthCellIdentifier = "cell"
@@ -78,26 +78,18 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
     var presentMonth = Int()
     
     var presentDate : dateStructure!
-
     
-    init(frame: CGRect?, needSeparator: Bool?, dayFormat: daysOfWeekFormat?, calendarScrollDirection: UICollectionViewScrollDirection) {
+    override init(frame: CGRect) {
         
-        if let frame = frame {
-            super.init(frame: frame)
-            self.calendarFrame = frame
-            
-        } else {
-            super.init(frame: defaultFrameForCalendar)
-            self.calendarFrame = defaultFrameForCalendar
-        }
-        if let needSeparator = needSeparator {
-            self.needSeparator = needSeparator
-        }
-        if let dayFormat = dayFormat {
-            self.dayFormat = dayFormat
-        }
-        calendarDirection = calendarScrollDirection
+        super.init(frame: frame)
+        self.calendarFrame = frame
         
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = calendarDirection
+        layout.itemSize = calendarFrame.size
+        layout.minimumInteritemSpacing = 0
+        layout.minimumLineSpacing = 0
+        calendarCollectionView = UICollectionView(frame: calendarFrame, collectionViewLayout: layout)
     }
 
     required init(coder aDecoder: NSCoder) {
@@ -129,12 +121,8 @@ class CustomizableCalendar: UIControl, UICollectionViewDataSource, UICollectionV
     }
     
     func setUpCollectionView() {
-        let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = calendarDirection
-        layout.itemSize = calendarFrame.size
-        layout.minimumInteritemSpacing = 0
-        layout.minimumLineSpacing = 0
-        calendarCollectionView = UICollectionView(frame: CGRect(x: 0, y: 0, width: calendarFrame.size.width, height: calendarFrame.size.height), collectionViewLayout: layout)
+        
+        calendarCollectionView.frame = CGRect(x: 0, y: 0, width: calendarFrame.size.width, height: calendarFrame.size.height)
         calendarCollectionView.dataSource = self
         calendarCollectionView.delegate = self
         if calendarDirection == .Horizontal {

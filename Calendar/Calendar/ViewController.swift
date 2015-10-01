@@ -12,6 +12,7 @@ class ViewController: UIViewController, CustomizableCalendarDelegate, Customizab
 
     @IBOutlet weak var didSelect: UILabel!
     @IBOutlet weak var monthAndYear: UILabel!
+    @IBOutlet weak var orangeView: UIView!
     var myCalendar : CustomizableCalendar!
     var eventsForRed = [NSDate]()
     var eventsForBlue = [NSDate]()
@@ -27,7 +28,8 @@ class ViewController: UIViewController, CustomizableCalendarDelegate, Customizab
         
         let calendarFrame = CGRect(x: 0, y: 120, width: 375, height: 375)
 //        let color = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1.0)
-        myCalendar = CustomizableCalendar(frame: calendarFrame, needSeparator: false, dayFormat: daysOfWeekFormat.SingleLetter, calendarScrollDirection: UICollectionViewScrollDirection.Vertical)
+//        let calendarFrame = CGRect(origin: CGPointZero, size: orangeView.frame.size)
+        myCalendar = CustomizableCalendar(frame: calendarFrame)
         myCalendar.calendarTarget = self
         let calendarFont = UIFont(name: "HelveticaNeue-Light", size: 12) // AppleSDGothicNeo-Light ArialMT  Avenir-Oblique HelveticaNeue-UltraLight MarkerFelt-Thin AmericanTypewriter HelveticaNeue-Light
         myCalendar.dateFont = calendarFont
@@ -37,7 +39,7 @@ class ViewController: UIViewController, CustomizableCalendarDelegate, Customizab
         myCalendar.daysOfWeekColor = UIColor.grayColor()
         myCalendar.delegate = self
         myCalendar.dataSource = self
-        self.view.addSubview(myCalendar)
+        view.addSubview(myCalendar)
     }
     
     
@@ -84,7 +86,7 @@ class ViewController: UIViewController, CustomizableCalendarDelegate, Customizab
     }
     
     func continuousEvent(calendar: CustomizableCalendar) -> [continuousEventStruct] {
-        return [continuousEventStruct(startDate: createNSDate("1/9/2015"), endDate: createNSDate("5/9/2015")), continuousEventStruct(startDate: createNSDate("7/09/2015"), endDate: createNSDate("09/09/2015")), continuousEventStruct(startDate: createNSDate("29/09/2015"), endDate: createNSDate("2/10/2015")), continuousEventStruct(startDate: createNSDate("5/10/2015"), endDate: createNSDate("8/10/2015")), continuousEventStruct(startDate: createNSDate("6/9/2015"), endDate: createNSDate("6/9/2015"))]
+        return [continuousEventStruct(startDate: createNSDate("1/9/2015"), endDate: createNSDate("5/9/2015")), continuousEventStruct(startDate: createNSDate("7/09/2015"), endDate: createNSDate("09/09/2015")), continuousEventStruct(startDate: createNSDate("29/09/2015"), endDate: createNSDate("30/9/2015")), continuousEventStruct(startDate: createNSDate("5/10/2015"), endDate: createNSDate("8/10/2015")), continuousEventStruct(startDate: createNSDate("6/9/2015"), endDate: createNSDate("6/9/2015"))]
     }
     
     func createNSDate(dateString: String) -> NSDate {
