@@ -125,6 +125,12 @@ struct continuousEventsSplitStruct {
     }
 }
 
+enum ContinuousEventHighlightType {
+    case StartDate
+    case IntermediateDate
+    case EndDate
+}
+
 extension Int {
     
 }

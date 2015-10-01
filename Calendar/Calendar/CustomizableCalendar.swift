@@ -450,7 +450,6 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
                     
                     let now = dateStructure(day: days+1, month: date1.month, year: date1.year)
                     if now.year == dateHelper.getDate().year && now.month == dateHelper.getDate().month && now.day == dateHelper.getDate().day {
-//                        let cornerDiameter = (dateButtons[days].frame.size.width<dateButtons[days].frame.size.height) ? (dateButtons[days].frame.size.width) : (dateButtons[days].frame.size.height)
                         let todayHighlightShapeLayer = CAShapeLayer()
                         todayHighlightShapeLayer.frame = CGRect(x: dateButtons[days].frame.size.width*((1 - eventFitScale)/2) + eventCircleWidth/2, y: dateButtons[days].frame.size.height*((1 - eventFitScale)/2) + eventCircleWidth/2, width: dateButtons[days].frame.size.width*eventFitScale - eventCircleWidth/2, height: dateButtons[days].frame.size.height*eventFitScale - eventCircleWidth/2)
                         todayHighlightShapeLayer.zPosition = -1
@@ -496,91 +495,19 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
                         else {
                             if dateStructure.areEqual(now, date2: contEvent.startDate) {
                                 print("Start Date")
-                                let circleShapeLayer = CAShapeLayer()
-                                circleShapeLayer.frame = CGRect(x: dateButtons[days].frame.size.width*((1 - eventFitScale)/2), y: dateButtons[days].frame.size.height*((1 - eventFitScale)/2), width: dateButtons[days].frame.size.width*eventFitScale, height: dateButtons[days].frame.size.height*eventFitScale)
-                                circleShapeLayer.zPosition = -2
-                                dateButtons[days].layer.addSublayer(circleShapeLayer)
-                                circleShapeLayer.fillColor = continuousEventColor.CGColor
-                                circleShapeLayer.path = UIBezierPath(roundedRect: circleShapeLayer.bounds, byRoundingCorners: UIRectCorner.AllCorners, cornerRadii: CGSize(width: circleShapeLayer.frame.size.height/2, height: circleShapeLayer.frame.size.height/2)).CGPath
-                                
-                                let rectangleShapeLayer = CAShapeLayer()
-                                rectangleShapeLayer.frame = CGRect(x: dateButtons[days].frame.size.width/2, y: dateButtons[days].frame.size.height*((1 - eventFitScale)/2), width: dateButtons[days].frame.size.width/2+2, height: dateButtons[days].frame.size.height*eventFitScale)
-                                rectangleShapeLayer.zPosition = -2
-                                rectangleShapeLayer.path = UIBezierPath(rect: CGRect(x: 0, y: 0, width: rectangleShapeLayer.frame.size.width, height: rectangleShapeLayer.frame.size.height)).CGPath
-                                dateButtons[days].layer.addSublayer(rectangleShapeLayer)
-                                rectangleShapeLayer.fillColor = continuousEventColor.CGColor
+                                addContinuousEventHighlight(dateButtons[days], highlightType: ContinuousEventHighlightType.StartDate)
                             }
                             else if dateStructure.isDateInBetween(now, lowerDate: contEvent.startDate, higherDate: contEvent.endDate) {
                                 print("Middle Date")
-                                let rectangleShapeLayer = CAShapeLayer()
-                                rectangleShapeLayer.frame = CGRect(x: 0, y: dateButtons[days].frame.size.height*((1 - eventFitScale)/2), width: dateButtons[days].frame.size.width+1, height: dateButtons[days].frame.size.height*eventFitScale)
-                                rectangleShapeLayer.zPosition = -2
-                                rectangleShapeLayer.path = UIBezierPath(rect: CGRect(x: 0, y: 0, width: rectangleShapeLayer.frame.size.width, height: rectangleShapeLayer.frame.size.height)).CGPath
-                                dateButtons[days].layer.addSublayer(rectangleShapeLayer)
-                                rectangleShapeLayer.fillColor = continuousEventColor.CGColor
+                                addContinuousEventHighlight(dateButtons[days], highlightType: ContinuousEventHighlightType.IntermediateDate)
                             }
                             else if dateStructure.areEqual(now, date2: contEvent.endDate) {
                                 print("End Date")
-                                let circleShapeLayer = CAShapeLayer()
-                                circleShapeLayer.frame = CGRect(x: dateButtons[days].frame.size.width*((1 - eventFitScale)/2), y: dateButtons[days].frame.size.height*((1 - eventFitScale)/2), width: dateButtons[days].frame.size.width*eventFitScale, height: dateButtons[days].frame.size.height*eventFitScale)
-                                circleShapeLayer.zPosition = -2
-                                dateButtons[days].layer.addSublayer(circleShapeLayer)
-                                circleShapeLayer.fillColor = continuousEventColor.CGColor
-                                circleShapeLayer.path = UIBezierPath(roundedRect: circleShapeLayer.bounds, byRoundingCorners: UIRectCorner.AllCorners, cornerRadii: CGSize(width: circleShapeLayer.frame.size.height/2, height: circleShapeLayer.frame.size.height/2)).CGPath
-                                
-                                let rectangleShapeLayer = CAShapeLayer()
-                                rectangleShapeLayer.frame = CGRect(x: 0, y: dateButtons[days].frame.size.height*((1 - eventFitScale)/2), width: dateButtons[days].frame.size.width/2+2, height: dateButtons[days].frame.size.height*eventFitScale)
-                                rectangleShapeLayer.zPosition = -2
-                                rectangleShapeLayer.path = UIBezierPath(rect: CGRect(x: 0, y: 0, width: rectangleShapeLayer.frame.size.width, height: rectangleShapeLayer.frame.size.height)).CGPath
-                                dateButtons[days].layer.addSublayer(rectangleShapeLayer)
-                                rectangleShapeLayer.fillColor = continuousEventColor.CGColor
+                                addContinuousEventHighlight(dateButtons[days], highlightType: ContinuousEventHighlightType.EndDate)
                             }
                         }
                         
                     }
-                    
-//                    if date1.year == 2015 && date1.month == 9 {
-//                        let startDate = 14
-//                        let endDate = 19
-//                        if days+1 == startDate {
-//                            let rectShape1 = CAShapeLayer()
-//                            rectShape1.frame = CGRect(x: dateButtons[days].frame.size.width*0.1, y: dateButtons[days].frame.size.height*0.1, width: dateButtons[days].frame.size.width*0.8, height: dateButtons[days].frame.size.height*0.8)
-//                            rectShape1.zPosition = -1
-//                            dateButtons[days].layer.addSublayer(rectShape1)
-//                            rectShape1.fillColor = UIColor(red: 0.2, green: 0.2, blue: 0.2, alpha: 1.0).CGColor
-//                            rectShape1.path = UIBezierPath(roundedRect: rectShape1.bounds, byRoundingCorners: UIRectCorner.AllCorners, cornerRadii: CGSize(width: rectShape1.frame.size.height/2, height: rectShape1.frame.size.height/2)).CGPath
-//                            
-//                            let rect2 = CAShapeLayer()
-//                            rect2.frame = CGRect(x: dateButtons[days].frame.size.width/2, y: dateButtons[days].frame.size.height*0.1, width: dateButtons[days].frame.size.width/2+2, height: dateButtons[days].frame.size.height*0.8)
-//                            rect2.zPosition = -1
-//                            rect2.path = UIBezierPath(rect: CGRect(x: 0, y: 0, width: rect2.frame.size.width, height: rect2.frame.size.height)).CGPath
-//                            dateButtons[days].layer.addSublayer(rect2)
-//                            rect2.fillColor = UIColor(red: 0.2, green: 0.2, blue: 0.2, alpha: 1.0).CGColor
-//                        }
-//                        else if days+1 > startDate && days+1 < endDate {
-//                            let rect2 = CAShapeLayer()
-//                            rect2.frame = CGRect(x: 0, y: dateButtons[days].frame.size.height*0.1, width: dateButtons[days].frame.size.width+1, height: dateButtons[days].frame.size.height*0.8)
-//                            rect2.zPosition = -1
-//                            rect2.path = UIBezierPath(rect: CGRect(x: 0, y: 0, width: rect2.frame.size.width, height: rect2.frame.size.height)).CGPath
-//                            dateButtons[days].layer.addSublayer(rect2)
-//                            rect2.fillColor = UIColor(red: 0.2, green: 0.2, blue: 0.2, alpha: 1.0).CGColor
-//                        }
-//                        else if days+1 == endDate {
-//                            let rectShape1 = CAShapeLayer()
-//                            rectShape1.frame = CGRect(x: dateButtons[days].frame.size.width*0.1, y: dateButtons[days].frame.size.height*0.1, width: dateButtons[days].frame.size.width*0.8, height: dateButtons[days].frame.size.height*0.8)
-//                            rectShape1.zPosition = -1
-//                            dateButtons[days].layer.addSublayer(rectShape1)
-//                            rectShape1.fillColor = UIColor(red: 0.2, green: 0.2, blue: 0.2, alpha: 1.0).CGColor
-//                            rectShape1.path = UIBezierPath(roundedRect: rectShape1.bounds, byRoundingCorners: UIRectCorner.AllCorners, cornerRadii: CGSize(width: rectShape1.frame.size.height/2, height: rectShape1.frame.size.height/2)).CGPath
-//                            
-//                            let rect2 = CAShapeLayer()
-//                            rect2.frame = CGRect(x: 0, y: dateButtons[days].frame.size.height*0.1, width: dateButtons[days].frame.size.width/2+2, height: dateButtons[days].frame.size.height*0.8)
-//                            rect2.zPosition = -1
-//                            rect2.path = UIBezierPath(rect: CGRect(x: 0, y: 0, width: rect2.frame.size.width, height: rect2.frame.size.height)).CGPath
-//                            dateButtons[days].layer.addSublayer(rect2)
-//                            rect2.fillColor = UIColor(red: 0.2, green: 0.2, blue: 0.2, alpha: 1.0).CGColor
-//                        }
-//                    }
                     
                     dateButtons[days].tag = days + 1
                     dateButtons[days].addTarget(self, action: "didSelectDate:", forControlEvents: UIControlEvents.TouchUpInside)
@@ -602,6 +529,9 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
         
         return baseView
     }
+    
+    
+    
     
     //Button action method
     func didSelectDate(sender: UIButton) {
@@ -672,6 +602,47 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
         //        date = (date.0,month,year)
         //        createDateButtons(date)
         //
+    }
+    
+    func addContinuousEventHighlight(viewToAddOn: UIView, highlightType: ContinuousEventHighlightType) {
+        if highlightType == ContinuousEventHighlightType.StartDate {
+            let circleShapeLayer = CAShapeLayer()
+            circleShapeLayer.frame = CGRect(x: viewToAddOn.frame.size.width*((1 - eventFitScale)/2), y: viewToAddOn.frame.size.height*((1 - eventFitScale)/2), width: viewToAddOn.frame.size.width*eventFitScale, height: viewToAddOn.frame.size.height*eventFitScale)
+            circleShapeLayer.zPosition = -2
+            viewToAddOn.layer.addSublayer(circleShapeLayer)
+            circleShapeLayer.fillColor = continuousEventColor.CGColor
+            circleShapeLayer.path = UIBezierPath(roundedRect: circleShapeLayer.bounds, byRoundingCorners: UIRectCorner.AllCorners, cornerRadii: CGSize(width: circleShapeLayer.frame.size.height/2, height: circleShapeLayer.frame.size.height/2)).CGPath
+            
+            let rectangleShapeLayer = CAShapeLayer()
+            rectangleShapeLayer.frame = CGRect(x: viewToAddOn.frame.size.width/2, y: viewToAddOn.frame.size.height*((1 - eventFitScale)/2), width: viewToAddOn.frame.size.width/2+2, height: viewToAddOn.frame.size.height*eventFitScale)
+            rectangleShapeLayer.zPosition = -2
+            rectangleShapeLayer.path = UIBezierPath(rect: CGRect(x: 0, y: 0, width: rectangleShapeLayer.frame.size.width, height: rectangleShapeLayer.frame.size.height)).CGPath
+            viewToAddOn.layer.addSublayer(rectangleShapeLayer)
+            rectangleShapeLayer.fillColor = continuousEventColor.CGColor
+        }
+        else if highlightType == ContinuousEventHighlightType.IntermediateDate {
+            let rectangleShapeLayer = CAShapeLayer()
+            rectangleShapeLayer.frame = CGRect(x: 0, y: viewToAddOn.frame.size.height*((1 - eventFitScale)/2), width: viewToAddOn.frame.size.width+1, height: viewToAddOn.frame.size.height*eventFitScale)
+            rectangleShapeLayer.zPosition = -2
+            rectangleShapeLayer.path = UIBezierPath(rect: CGRect(x: 0, y: 0, width: rectangleShapeLayer.frame.size.width, height: rectangleShapeLayer.frame.size.height)).CGPath
+            viewToAddOn.layer.addSublayer(rectangleShapeLayer)
+            rectangleShapeLayer.fillColor = continuousEventColor.CGColor
+        }
+        else {
+            let circleShapeLayer = CAShapeLayer()
+            circleShapeLayer.frame = CGRect(x: viewToAddOn.frame.size.width*((1 - eventFitScale)/2), y: viewToAddOn.frame.size.height*((1 - eventFitScale)/2), width: viewToAddOn.frame.size.width*eventFitScale, height: viewToAddOn.frame.size.height*eventFitScale)
+            circleShapeLayer.zPosition = -2
+            viewToAddOn.layer.addSublayer(circleShapeLayer)
+            circleShapeLayer.fillColor = continuousEventColor.CGColor
+            circleShapeLayer.path = UIBezierPath(roundedRect: circleShapeLayer.bounds, byRoundingCorners: UIRectCorner.AllCorners, cornerRadii: CGSize(width: circleShapeLayer.frame.size.height/2, height: circleShapeLayer.frame.size.height/2)).CGPath
+            
+            let rectangleShapeLayer = CAShapeLayer()
+            rectangleShapeLayer.frame = CGRect(x: 0, y: viewToAddOn.frame.size.height*((1 - eventFitScale)/2), width: viewToAddOn.frame.size.width/2+2, height: viewToAddOn.frame.size.height*eventFitScale)
+            rectangleShapeLayer.zPosition = -2
+            rectangleShapeLayer.path = UIBezierPath(rect: CGRect(x: 0, y: 0, width: rectangleShapeLayer.frame.size.width, height: rectangleShapeLayer.frame.size.height)).CGPath
+            viewToAddOn.layer.addSublayer(rectangleShapeLayer)
+            rectangleShapeLayer.fillColor = continuousEventColor.CGColor
+        }
     }
 
 }
