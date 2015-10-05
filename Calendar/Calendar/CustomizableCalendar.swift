@@ -117,7 +117,6 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
         }
         setToday()
         setUpCollectionView()
-        
     }
     
     func setUpCollectionView() {
@@ -136,6 +135,9 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
         self.backgroundColor = calendarBackgroundColor
         calendarCollectionView.registerClass(UICollectionViewCell.self, forCellWithReuseIdentifier: calendarMonthCellIdentifier)
         calendarCollectionView.pagingEnabled = true
+        for subView in self.subviews {
+            subView.removeFromSuperview()
+        }
         self.addSubview(calendarCollectionView)
     }
 
@@ -153,20 +155,23 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
             sVs.removeFromSuperview()
         }
         cell.contentView.addSubview(monthsInMemory[indexPath.row])
-//        print("Subview count is \(cell.contentView.subviews.count)")
         return cell
     }
     
     func scrollViewDidEndDecelerating(scrollView: UIScrollView) {
         
-        let ind = calendarCollectionView.indexPathsForVisibleItems()
-        
-        let cell = calendarCollectionView.cellForItemAtIndexPath(ind[0])!
-        let sVs = cell.contentView.subviews
-        
-        let sVs1 = sVs[0].subviews
+        findOutFrame(calendarCollectionView.indexPathsForVisibleItems())
+        checkForCalendarScroll(scrollView)
+    }
+    
+    func findOutFrame(indexPathOfCell: [NSIndexPath]) {
+        print("No. of indexPaths")
+        print(indexPathOfCell.count)
+        let cell = calendarCollectionView.cellForItemAtIndexPath(indexPathOfCell[0])!
+        let subViews = cell.contentView.subviews
+        let subviewsOfSubview = subViews[0].subviews
         var requiredView = UIView()
-        for views in sVs1 {
+        for views in subviewsOfSubview {
             if views is UILabel {
                 
             }
@@ -175,7 +180,6 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
             }
         }
         let sVs2 = requiredView.subviews
-//                print("\(sVs2.count)")
         var maxTag = 0
         for dateView in sVs2 {
             if dateView.tag > maxTag {
@@ -188,127 +192,120 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
                     let frameOfLastButton = dateView.frame
                     if frameOfLastButton.origin.y == 5 * calendarFrame.size.height*(6.0/7.0)/6 {
                         print("Larger Frame")
-//                        UIView.animateWithDuration(0.4, animations: { () -> Void in
-//                            let presentFrame = self.frame
-//                            self.frame = CGRect(x: presentFrame.origin.x, y: presentFrame.origin.y, width: presentFrame.size.width, height: self.calendarFrame.size.height)
-//                            }, completion: { (myBoo) -> Void in
-//                                print("Complete")
-//                        })
                     }
                     else {
                         print("Smaller Frame")
-//                        UIView.animateWithDuration(0.4, animations: { () -> Void in
-//                            let presentFrame = self.frame
-//                            self.frame = CGRect(x: presentFrame.origin.x, y: presentFrame.origin.y, width: presentFrame.size.width, height: self.calendarFrame.size.height - (self.calendarFrame.size.height*(6.0/7.0)/6))
-//                            }, completion: { (myBoo) -> Void in
-//                                print("Complete")
-//                        })
                     }
                 }
                 else {
                     print("Not a button!!!")
                 }
-                
             }
         }
         print("MaxTag:\(maxTag)")
-        
-        checkForCalendarScroll(scrollView)
     }
     
     func checkForCalendarScroll(scrollView: UIScrollView) {
         let presentPoint = scrollView.contentOffset
         print(scrollView.contentOffset)
-        let presentIndex = calendarCollectionView.indexPathForItemAtPoint(scrollView.contentOffset)!
-        
-        print(presentIndex.item)
-        if calendarDirection == .Horizontal {
-            if scrollView.contentOffset.x <= previousPoint.x {
-                //                if presentIndex.item <= monthsInMemory.count/2 {
-                presentMonth = presentIndex.item
-                previousMonth(presentIndex)
-                //                }
+        if let presentIndex = calendarCollectionView.indexPathForItemAtPoint(scrollView.contentOffset) {
+            print("Present Index: \(presentIndex.item)")
+            if calendarDirection == .Horizontal {
+                if scrollView.contentOffset.x <= previousPoint.x {
+                    presentMonth = presentIndex.item
+                    previousMonth(presentIndex)
+                }
+                else {
+                    presentMonth = presentIndex.item
+                    nextMonth(presentIndex)
+                }
             }
-            else {
-                //                if presentIndex.item >= monthsInMemory.count/2 {
-                presentMonth = presentIndex.item
-                nextMonth(presentIndex)
-                //                }
+            else if calendarDirection == .Vertical {
+                if scrollView.contentOffset.y <= previousPoint.y {
+                    presentMonth = presentIndex.item
+                    previousMonth(presentIndex)
+                }
+                else {
+                    presentMonth = presentIndex.item
+                    nextMonth(presentIndex)
+                }
             }
+            previousPoint = presentPoint
+            print("MonthsArray Count = \(monthsArray.count)")
         }
-        else if calendarDirection == .Vertical {
-            if scrollView.contentOffset.y <= previousPoint.y {
-                //                if presentIndex.item <= monthsInMemory.count/2 {
-                presentMonth = presentIndex.item
-                previousMonth(presentIndex)
-                //                }
-            }
-            else {
-                //                if presentIndex.item >= monthsInMemory.count/2 {
-                presentMonth = presentIndex.item
-                nextMonth(presentIndex)
-                //                }
-            }
-        }
-        previousPoint = presentPoint
     }
     
     func previousMonth(presentIndex: NSIndexPath) {
-        let leastMonth = monthsArray[0]
-        var month = leastMonth.month - 1
-        var year = leastMonth.year
-        if month <= 0 {
-            year--
-            month = 12 - month
-        }
-        monthsArray.insert(dateStructure(day: leastMonth.day, month: month, year: year), atIndex: 0)
-        monthsInMemory.insert(createDateButtons(monthsArray[0]), atIndex: 0)
-        calendarCollectionView.reloadData()
-//        print(monthsArray.count)
-        if calendarDirection == .Horizontal {
-            calendarCollectionView.scrollToItemAtIndexPath(NSIndexPath(forItem: presentIndex.item + 1, inSection: 0), atScrollPosition: UICollectionViewScrollPosition.CenteredHorizontally, animated: false)
-            previousPoint = CGPoint(x: calendarFrame.size.width * 2, y: 0.0)
+        if presentIndex.item < 2 {
+            let leastMonth = monthsArray[0]
+            var month = leastMonth.month - 1
+            var year = leastMonth.year
+            if month <= 0 {
+                year--
+                month = 12 - month
+            }
+            monthsArray.insert(dateStructure(day: leastMonth.day, month: month, year: year), atIndex: 0)
+            monthsInMemory.insert(createDateButtons(monthsArray[0]), atIndex: 0)
+            calendarCollectionView.reloadData()
+            if calendarDirection == .Horizontal {
+                calendarCollectionView.scrollToItemAtIndexPath(NSIndexPath(forItem: presentIndex.item + 1, inSection: 0), atScrollPosition: UICollectionViewScrollPosition.CenteredHorizontally, animated: false)
+                previousPoint = CGPoint(x: calendarFrame.size.width * 2, y: 0.0)
+            }
+            else {
+                calendarCollectionView.scrollToItemAtIndexPath(NSIndexPath(forItem: presentIndex.item + 1, inSection: 0), atScrollPosition: UICollectionViewScrollPosition.CenteredVertically, animated: false)
+                previousPoint = CGPoint(x: 0.0, y: calendarFrame.size.height * 2)
+            }
+            
+            if let delegate = self.delegate {
+                let changesMade = monthYearStructure(fromMonth: monthsArray[presentIndex.item + 2].month, fromMonthName: monthDictionary[monthsArray[presentIndex.item + 2].month]!, fromYear: monthsArray[presentIndex.item + 2].year, toMonth: monthsArray[presentIndex.item + 1].month, toMonthName: monthDictionary[monthsArray[presentIndex.item + 1].month]!, toYear: monthsArray[presentIndex.item + 1].year)
+                delegate.calendar(self, monthChange: changesMade)
+            }
+            presentDate = dateStructure(day: presentDate.day, month: monthsArray[presentIndex.item + 1].month, year: monthsArray[presentIndex.item + 1].year)
         }
         else {
-            calendarCollectionView.scrollToItemAtIndexPath(NSIndexPath(forItem: presentIndex.item + 1, inSection: 0), atScrollPosition: UICollectionViewScrollPosition.CenteredVertically, animated: false)
-            previousPoint = CGPoint(x: 0.0, y: calendarFrame.size.height * 2)
+            if let delegate = self.delegate {
+                let changesMade = monthYearStructure(fromMonth: monthsArray[presentIndex.item + 1].month, fromMonthName: monthDictionary[monthsArray[presentIndex.item + 1].month]!, fromYear: monthsArray[presentIndex.item + 1].year, toMonth: monthsArray[presentIndex.item].month, toMonthName: monthDictionary[monthsArray[presentIndex.item ].month]!, toYear: monthsArray[presentIndex.item].year)
+                delegate.calendar(self, monthChange: changesMade)
+            }
+            presentDate = dateStructure(day: presentDate.day, month: monthsArray[presentIndex.item].month, year: monthsArray[presentIndex.item].year)
         }
-        
-        if let delegate = self.delegate {
-            let changesMade = monthYearStructure(fromMonth: monthsArray[presentIndex.item + 2].month, fromMonthName: monthDictionary[monthsArray[presentIndex.item + 2].month]!, fromYear: monthsArray[presentIndex.item + 2].year, toMonth: monthsArray[presentIndex.item + 1].month, toMonthName: monthDictionary[monthsArray[presentIndex.item + 1].month]!, toYear: monthsArray[presentIndex.item + 1].year)
-            delegate.calendar(self, monthChange: changesMade)
-        }
-        presentDate = dateStructure(day: presentDate.day, month: monthsArray[presentIndex.item + 1].month, year: monthsArray[presentIndex.item + 1].year)
-//        adjustFrame(presentIndex)
-        
     }
     
     func nextMonth(presentIndex: NSIndexPath) {
-        let maximumMonth = monthsArray[monthsArray.count - 1]
-        var month = maximumMonth.month + 1
-        var year = maximumMonth.year
-        if month > 12 {
-            year++
-            month = month % 12
-        }
-        monthsArray.append(dateStructure(day: maximumMonth.day, month: month, year: year))
-        monthsInMemory.append(createDateButtons(monthsArray[monthsArray.count - 1]))
-        calendarCollectionView.reloadData()
-//        print(monthsArray.count)
-        if calendarDirection == .Horizontal {
-            calendarCollectionView.scrollToItemAtIndexPath(NSIndexPath(forItem: presentIndex.item, inSection: 0), atScrollPosition: UICollectionViewScrollPosition.CenteredHorizontally, animated: false)
-            previousPoint = CGPoint(x: calendarFrame.size.width * 2, y: 0.0)
+        print(presentIndex.item)
+        print(monthsArray.count - 2)
+        if presentIndex.item > monthsArray.count - 3 {
+            let maximumMonth = monthsArray[monthsArray.count - 1]
+            var month = maximumMonth.month + 1
+            var year = maximumMonth.year
+            if month > 12 {
+                year++
+                month = month % 12
+            }
+            monthsArray.append(dateStructure(day: maximumMonth.day, month: month, year: year))
+            monthsInMemory.append(createDateButtons(monthsArray[monthsArray.count - 1]))
+            calendarCollectionView.reloadData()
+            if calendarDirection == .Horizontal {
+                calendarCollectionView.scrollToItemAtIndexPath(NSIndexPath(forItem: presentIndex.item, inSection: 0), atScrollPosition: UICollectionViewScrollPosition.CenteredHorizontally, animated: false)
+                previousPoint = CGPoint(x: calendarFrame.size.width * 2, y: 0.0)
+            }
+            else {
+                calendarCollectionView.scrollToItemAtIndexPath(NSIndexPath(forItem: presentIndex.item, inSection: 0), atScrollPosition: UICollectionViewScrollPosition.CenteredVertically, animated: false)
+                previousPoint = CGPoint(x: 0.0, y: calendarFrame.size.height * 2)
+            }
+            if let delegate = self.delegate {
+                let changesMade = monthYearStructure(fromMonth: monthsArray[presentIndex.item - 1].month, fromMonthName: monthDictionary[monthsArray[presentIndex.item - 1].month]!, fromYear: monthsArray[presentIndex.item - 1].year, toMonth: monthsArray[presentIndex.item].month, toMonthName: monthDictionary[monthsArray[presentIndex.item].month]!, toYear: monthsArray[presentIndex.item].year)
+                delegate.calendar(self, monthChange: changesMade)
+            }
+            presentDate = dateStructure(day: presentDate.day, month: monthsArray[presentIndex.item].month, year: monthsArray[presentIndex.item].year)
         }
         else {
-            calendarCollectionView.scrollToItemAtIndexPath(NSIndexPath(forItem: presentIndex.item, inSection: 0), atScrollPosition: UICollectionViewScrollPosition.CenteredVertically, animated: false)
-            previousPoint = CGPoint(x: 0.0, y: calendarFrame.size.height * 2)
+            if let delegate = self.delegate {
+                let changesMade = monthYearStructure(fromMonth: monthsArray[presentIndex.item - 1].month, fromMonthName: monthDictionary[monthsArray[presentIndex.item - 1].month]!, fromYear: monthsArray[presentIndex.item - 1].year, toMonth: monthsArray[presentIndex.item].month, toMonthName: monthDictionary[monthsArray[presentIndex.item].month]!, toYear: monthsArray[presentIndex.item].year)
+                delegate.calendar(self, monthChange: changesMade)
+            }
+            presentDate = dateStructure(day: presentDate.day, month: monthsArray[presentIndex.item].month, year: monthsArray[presentIndex.item].year)
         }
-        if let delegate = self.delegate {
-            let changesMade = monthYearStructure(fromMonth: monthsArray[presentIndex.item - 1].month, fromMonthName: monthDictionary[monthsArray[presentIndex.item - 1].month]!, fromYear: monthsArray[presentIndex.item - 1].year, toMonth: monthsArray[presentIndex.item].month, toMonthName: monthDictionary[monthsArray[presentIndex.item].month]!, toYear: monthsArray[presentIndex.item].year)
-            delegate.calendar(self, monthChange: changesMade)
-        }
-        presentDate = dateStructure(day: presentDate.day, month: monthsArray[presentIndex.item].month, year: monthsArray[presentIndex.item].year)
-//        adjustFrame(presentIndex)
     }
     
 //    func adjustFrame(presentIndex: NSIndexPath) {
@@ -344,15 +341,10 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
 //    }
 
     func todayButton(sender: AnyObject) {
-        setToday()
-        calendarCollectionView.reloadData()
-        if calendarDirection == .Horizontal {
-            calendarCollectionView.scrollToItemAtIndexPath(NSIndexPath(forItem: 2, inSection: 0), atScrollPosition: UICollectionViewScrollPosition.CenteredHorizontally, animated: true)
-            previousPoint = CGPoint(x: calendarFrame.size.width * 2, y: 0.0)
-        }
-        else {
-            calendarCollectionView.scrollToItemAtIndexPath(NSIndexPath(forItem: 2, inSection: 0), atScrollPosition: UICollectionViewScrollPosition.CenteredVertically, animated: true)
-            previousPoint = CGPoint(x: 0.0, y: calendarFrame.size.height * 2)
+        for indexOfCalendar in 0..<monthsInMemory.count {
+            if monthsInMemory[indexOfCalendar].tag == 22 {
+                calendarCollectionView.scrollToItemAtIndexPath(NSIndexPath(forItem: indexOfCalendar, inSection: 0), atScrollPosition: UICollectionViewScrollPosition.CenteredVertically, animated: true)
+            }
         }
         if let delegate = self.delegate {
             let changesMade = monthYearStructure(fromMonth: dateHelper.getDate().month, fromMonthName: monthDictionary[dateHelper.getDate().month]!, fromYear: dateHelper.getDate().year, toMonth: dateHelper.getDate().month, toMonthName: monthDictionary[dateHelper.getDate().month]!, toYear: dateHelper.getDate().year)
@@ -389,10 +381,12 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
         monthsArray[1] = dateStructure(day: date.day, month: month, year: year)
         monthsInMemory[1] = createDateButtons(monthsArray[1])
         
+        
         monthsArray[2] = date
         monthsInMemory[2] = createDateButtons(date)
         presentMonth = 2
         presentDate = date
+        monthsInMemory[2].tag = 22
         
         month = date.month + 1
         year = date.year

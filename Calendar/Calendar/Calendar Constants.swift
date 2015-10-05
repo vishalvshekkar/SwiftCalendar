@@ -84,10 +84,12 @@ let defaultFontForCalendar = UIFont(name: "HelveticaNeue-Light", size: 13)
 struct eventHighlightStruct {
     var highlightImage : UIImage
     var eventsList : [NSDate]
+    var highlightColor : UIColor
     
-    init(highlightImage: UIImage, eventsList: [NSDate]) {
+    init(highlightImage: UIImage, eventsList: [NSDate], highlightColor: UIColor) {
         self.highlightImage = highlightImage
         self.eventsList = eventsList
+        self.highlightColor = highlightColor
     }
 }
 

@@ -72,11 +72,12 @@ class ViewController: UIViewController, CustomizableCalendarDelegate, Customizab
     
     func eventDetails(calendar: CustomizableCalendar, forEventType: Int) -> eventHighlightStruct {
         if forEventType == 0 {
-            return eventHighlightStruct(highlightImage: UIImage(named: "redRing")!, eventsList: eventsForRed)
-            
+//            return eventHighlightStruct(highlightImage: UIImage(named: "redRing")!, eventsList: eventsForRed)
+            return eventHighlightStruct(highlightImage: UIImage(named: "redRing")!, eventsList: eventsForRed, highlightColor: UIColor.redColor())
         }
         else {
-            return eventHighlightStruct(highlightImage: UIImage(named: "blueRing")!, eventsList: eventsForBlue)
+//            return eventHighlightStruct(highlightImage: UIImage(named: "blueRing")!, eventsList: eventsForBlue)
+            return eventHighlightStruct(highlightImage: UIImage(named: "blueRing")!, eventsList: eventsForBlue, highlightColor: UIColor.blueColor())
         }
     }
 
