@@ -46,6 +46,7 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
     var date = dateStructure(day: 0, month: 0, year: 0)
     
     var calendarFrame = defaultFrameForCalendar
+    var fullFrame: CGRect!
     var calendarBackgroundColor = UIColor.blackColor()
     var dateColor = UIColor.whiteColor()
     var dateHighlightedColor = UIColor.grayColor()
@@ -79,17 +80,25 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
     
     var presentDate : dateStructure!
     
-    override init(frame: CGRect) {
-        
+    init(frame: CGRect, calendarType: CalendarType) {
         super.init(frame: frame)
-        self.calendarFrame = frame
-        
         let layout = UICollectionViewFlowLayout()
+        if calendarType == CalendarType.ElaborateVertical {
+            fullFrame = frame
+            calendarFrame = CGRect(x: 0, y: 0, width: fullFrame.width, height: fullFrame.width)
+            calendarDirection = .Vertical
+            layout.itemSize = CGSize(width: fullFrame.width, height: fullFrame.width)
+        }
+        else {
+            fullFrame = frame
+            calendarFrame = frame
+            calendarDirection = .Horizontal
+            layout.itemSize = calendarFrame.size
+        }
         layout.scrollDirection = calendarDirection
-        layout.itemSize = calendarFrame.size
         layout.minimumInteritemSpacing = 0
         layout.minimumLineSpacing = 0
-        calendarCollectionView = UICollectionView(frame: calendarFrame, collectionViewLayout: layout)
+        calendarCollectionView = UICollectionView(frame: CGRect(x: 0, y: 0, width: fullFrame.width, height: fullFrame.height), collectionViewLayout: layout)
     }
 
     required init(coder aDecoder: NSCoder) {
@@ -121,9 +130,10 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
     
     func setUpCollectionView() {
         
-        calendarCollectionView.frame = CGRect(x: 0, y: 0, width: calendarFrame.size.width, height: calendarFrame.size.height)
+//        calendarCollectionView.frame = CGRect(x: 0, y: 0, width: calendarFrame.size.width, height: calendarFrame.size.height)
         calendarCollectionView.dataSource = self
         calendarCollectionView.delegate = self
+        calendarCollectionView.backgroundColor = UIColor.clearColor()
         if calendarDirection == .Horizontal {
             calendarCollectionView.scrollToItemAtIndexPath(NSIndexPath(forItem: 2, inSection: 0), atScrollPosition: UICollectionViewScrollPosition.CenteredHorizontally, animated: false)
             previousPoint = CGPoint(x: calendarFrame.size.width * 2, y: 0.0)
@@ -165,7 +175,6 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
     }
     
     func findOutFrame(indexPathOfCell: [NSIndexPath]) {
-        print("No. of indexPaths")
         print(indexPathOfCell.count)
         let cell = calendarCollectionView.cellForItemAtIndexPath(indexPathOfCell[0])!
         let subViews = cell.contentView.subviews
@@ -202,7 +211,6 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
                 }
             }
         }
-        print("MaxTag:\(maxTag)")
     }
     
     func checkForCalendarScroll(scrollView: UIScrollView) {

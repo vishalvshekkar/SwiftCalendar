@@ -133,6 +133,11 @@ enum ContinuousEventHighlightType {
     case EndDate
 }
 
+enum CalendarType {
+    case ElaborateVertical
+    case SimpleHorizontal
+}
+
 extension Int {
     
 }

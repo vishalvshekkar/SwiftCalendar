@@ -19,17 +19,17 @@ class ViewController: UIViewController, CustomizableCalendarDelegate, Customizab
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.view.backgroundColor = UIColor.blackColor()
+//        self.view.backgroundColor = UIColor.blackColor()
         doDate()
         calendarSetup()
     }
     
     func calendarSetup() {
         
-        let calendarFrame = CGRect(x: 0, y: 120, width: 375, height: 375)
+        let calendarFrame = CGRect(x: 0, y: 50, width: 375, height: 600)
 //        let color = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1.0)
 //        let calendarFrame = CGRect(origin: CGPointZero, size: orangeView.frame.size)
-        myCalendar = CustomizableCalendar(frame: calendarFrame)
+        myCalendar = CustomizableCalendar(frame: calendarFrame, calendarType: CalendarType.ElaborateVertical)
         myCalendar.calendarTarget = self
         let calendarFont = UIFont(name: "HelveticaNeue-Light", size: 12) // AppleSDGothicNeo-Light ArialMT  Avenir-Oblique HelveticaNeue-UltraLight MarkerFelt-Thin AmericanTypewriter HelveticaNeue-Light
         myCalendar.dateFont = calendarFont
