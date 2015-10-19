@@ -124,7 +124,6 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
         fatalError("init(coder:) has not been implemented")
     }
     
-    
     override func layoutSubviews() {
         
         if let dataSource = self.dataSource {
@@ -135,13 +134,11 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
             let changesMade = monthYearStructure(fromMonth: dateHelper.getDate().month, fromMonthName: monthDictionary[dateHelper.getDate().month]!, fromYear: dateHelper.getDate().year, toMonth: dateHelper.getDate().month, toMonthName: monthDictionary[dateHelper.getDate().month]!, toYear: dateHelper.getDate().year)
             delegate.calendar(self, monthChange: changesMade)
         }
-//        setToday()
         setUpCollectionView()
     }
     
     func setUpCollectionView() {
         
-//        calendarCollectionView.frame = CGRect(x: 0, y: 0, width: calendarFrame.size.width, height: calendarFrame.size.height)
         calendarCollectionView.dataSource = self
         calendarCollectionView.delegate = self
         calendarCollectionView.backgroundColor = UIColor.clearColor()
@@ -155,7 +152,6 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
         }
         self.backgroundColor = defaultCalendarProperties.calendarBackgroundColor
         calendarCollectionView.registerClass(UICollectionViewCell.self, forCellWithReuseIdentifier: calendarMonthCellIdentifier)
-//        calendarCollectionView.registerClass(MonthView.self, forCellWithReuseIdentifier: calendarMonthCellIdentifier)
         calendarCollectionView.pagingEnabled = false
         for subView in self.subviews {
             subView.removeFromSuperview()
@@ -176,7 +172,7 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         let cell = calendarCollectionView.dequeueReusableCellWithReuseIdentifier(calendarMonthCellIdentifier, forIndexPath: indexPath)
         cell.backgroundColor = UIColor.clearColor()
-        let monthView = MonthView(frame: CGRect(x: 0, y: 0, width: cellItemSize.width, height: cellItemSize.height), dateStruct: provideMonths(indexPath), eventsModel: self.eventsModel)
+        let monthView = MonthView(frame: CGRect(x: 0, y: 0, width: cellItemSize.width, height: cellItemSize.height), dateStruct: provideMonths(indexPath), eventsModel: self.eventsModel, delegate: self)
         
         let subViews = cell.subviews
         for sVs in subViews {
@@ -184,6 +180,10 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
         }
         cell.addSubview(monthView)
         return cell
+    }
+    
+    func eventsUpdated() {
+        
     }
     
     func scrollViewDidEndDecelerating(scrollView: UIScrollView) {
@@ -687,17 +687,11 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
 }
 
 
-extension CustomizableCalendar {
+extension CustomizableCalendar: MonthsViewDelegate {
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    func didUpdateEvents() {
+        calendarCollectionView.reloadData()
+    }
     
 }
 

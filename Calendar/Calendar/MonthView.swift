@@ -8,8 +8,15 @@
 
 import UIKit
 
+protocol MonthsViewDelegate {
+    
+    func didUpdateEvents()
+    
+}
+
 class MonthView: UIView {
     
+    var delegate : MonthsViewDelegate!
     var defaultCalendarProperties = DefaultCalendarProperties()
     let dateHelper = DateHelper()
     
@@ -17,9 +24,10 @@ class MonthView: UIView {
     var eventsModel : CalendarEventsModel
     let buttonsView = UIView()
     
-    init(frame: CGRect, dateStruct : DateStructure, eventsModel : CalendarEventsModel) {
+    init(frame: CGRect, dateStruct : DateStructure, eventsModel : CalendarEventsModel, delegate: MonthsViewDelegate) {
         self.dateStruct = dateStruct
         self.eventsModel = eventsModel
+        self.delegate = delegate
         super.init(frame: frame)
         
         self.addSubview(createDateButtons(self.dateStruct))
@@ -43,7 +51,6 @@ class MonthView: UIView {
         baseView.addSubview(buttonsView)
         let buttonHeight = buttonsView.frame.size.height/6
         let buttonWidth = buttonsView.frame.size.width/7
-        
         
         var startDay = dateHelper.getDayOfWeek(String(date1.year)+"-"+String(date1.month)+"-01")! - 1
         print(startDay)
@@ -211,7 +218,6 @@ class MonthView: UIView {
     {
         
         print(sender.tag)
-        
         manageEvents(sender.tag)
         
     }
@@ -242,7 +248,7 @@ class MonthView: UIView {
                     }
                     else {
                     }
-                    
+                    let previousDayEventType = eventsModel.getEventTypeForDate(previousDay)
                     if let month = eventsModel.formattedEvents[previousDay.year] {
                         if let day = month[previousDay.month] {
                             if day[previousDay.day] == EventType.StartUnavailable {
@@ -263,20 +269,113 @@ class MonthView: UIView {
                                 }
                             }
                         }
-                        let previousDayEventType = eventsModel.getEventTypeForDate(previousDay)
+                        
                         if previousDayEventType == EventType.StartUnavailable {
                             addEventHighlights(previousButton, highlightType: EventType.SingleDayUnavailable)
                         }
                         else if previousDayEventType == EventType.IntermediateUnavailable {
                             addEventHighlights(previousButton, highlightType: EventType.EndUnavailable)
                         }
-                        
-                        
+                    }
+                    else {
+                        if let delegate = delegate {
+                            delegate.didUpdateEvents()
+                        }
                     }
                 }
             }
             else if tappedEventType == EventType.IntermediateUnavailable {
-                
+                if let drawingLayers = buttonTapped.layer.sublayers {
+                    for layer in drawingLayers {
+                        if layer is CAShapeLayer {
+                            layer.removeFromSuperlayer()
+                        }
+                    }
+                    let nextDay = dateTapped.getNextDay()
+                    let previousDay = dateTapped.getPreviousDay()
+                    
+                    if let month = eventsModel.formattedEvents[dateTapped.year]
+                    {
+                        if let _ = month[dateTapped.month]
+                        {
+                            eventsModel.formattedEvents[dateTapped.year]![dateTapped.month]![dateTapped.day] = nil
+                        }
+                        else {
+                        }
+                    }
+                    else {
+                    }
+                    
+                    let previousDayEventType = eventsModel.getEventTypeForDate(previousDay)
+                    if let month = eventsModel.formattedEvents[previousDay.year] {
+                        if let day = month[previousDay.month] {
+                            if day[previousDay.day] == EventType.StartUnavailable {
+                                eventsModel.formattedEvents[previousDay.year]![previousDay.month]![previousDay.day] = EventType.SingleDayUnavailable
+                            }
+                            else if day[previousDay.day] == EventType.IntermediateUnavailable {
+                                eventsModel.formattedEvents[previousDay.year]![previousDay.month]![previousDay.day] = EventType.EndUnavailable
+                            }
+                        }
+                    }
+                    
+                    let nextDayEventType = eventsModel.getEventTypeForDate(nextDay)
+                    if let month = eventsModel.formattedEvents[nextDay.year] {
+                        if let day = month[nextDay.month] {
+                            if day[nextDay.day] == EventType.EndUnavailable {
+                                eventsModel.formattedEvents[nextDay.year]![nextDay.month]![nextDay.day] = EventType.SingleDayUnavailable
+                            }
+                            else if day[nextDay.day] == EventType.IntermediateUnavailable {
+                                eventsModel.formattedEvents[nextDay.year]![nextDay.month]![nextDay.day] = EventType.StartUnavailable
+                            }
+                        }
+                    }
+                    
+                    if dateTapped.month == nextDay.month {
+                        let nextButton = buttonsView.viewWithTag(nextDay.day)!
+                        if let drawingLayers = nextButton.layer.sublayers {
+                            for layer in drawingLayers {
+                                if layer is CAShapeLayer {
+                                    layer.removeFromSuperlayer()
+                                }
+                            }
+                        }
+                        
+                        if nextDayEventType == EventType.EndUnavailable {
+                            addEventHighlights(nextButton, highlightType: EventType.SingleDayUnavailable)
+                        }
+                        else if nextDayEventType == EventType.IntermediateUnavailable {
+                            addEventHighlights(nextButton, highlightType: EventType.StartUnavailable)
+                        }
+                    }
+                    else {
+                        if let delegate = delegate {
+                            delegate.didUpdateEvents()
+                        }
+                    }
+                    
+                    if dateTapped.month == previousDay.month {
+                        let previousButton = buttonsView.viewWithTag(previousDay.day)!
+                        if let drawingLayers = previousButton.layer.sublayers {
+                            for layer in drawingLayers {
+                                if layer is CAShapeLayer {
+                                    layer.removeFromSuperlayer()
+                                }
+                            }
+                        }
+                        
+                        if previousDayEventType == EventType.StartUnavailable {
+                            addEventHighlights(previousButton, highlightType: EventType.SingleDayUnavailable)
+                        }
+                        else if previousDayEventType == EventType.IntermediateUnavailable {
+                            addEventHighlights(previousButton, highlightType: EventType.EndUnavailable)
+                        }
+                    }
+                    else {
+                        if let delegate = delegate {
+                            delegate.didUpdateEvents()
+                        }
+                    }
+                }
             }
             else if tappedEventType == EventType.StartUnavailable {
                 if let drawingLayers = buttonTapped.layer.sublayers {
@@ -300,9 +399,10 @@ class MonthView: UIView {
                     else {
                     }
                     
+                    let nextDayEventType = eventsModel.getEventTypeForDate(nextDay)
                     if let month = eventsModel.formattedEvents[nextDay.year] {
                         if let day = month[nextDay.month] {
-                            if day[nextDay.day] == EventType.StartUnavailable {
+                            if day[nextDay.day] == EventType.EndUnavailable {
                                 eventsModel.formattedEvents[nextDay.year]![nextDay.month]![nextDay.day] = EventType.SingleDayUnavailable
                             }
                             else if day[nextDay.day] == EventType.IntermediateUnavailable {
@@ -321,25 +421,336 @@ class MonthView: UIView {
                                 }
                             }
                         }
-                        let previousDayEventType = eventsModel.getEventTypeForDate(nextDay)
-                        if previousDayEventType == EventType.EndUnavailable {
+                        
+                        if nextDayEventType == EventType.EndUnavailable {
                             addEventHighlights(nextButton, highlightType: EventType.SingleDayUnavailable)
                         }
-                        else if previousDayEventType == EventType.IntermediateUnavailable {
+                        else if nextDayEventType == EventType.IntermediateUnavailable {
                             addEventHighlights(nextButton, highlightType: EventType.StartUnavailable)
                         }
                         
                     }
+                    else {
+                        if let delegate = delegate {
+                            delegate.didUpdateEvents()
+                        }
+                    }
                 }
             }
             else if tappedEventType == EventType.SingleDayUnavailable {
+                if let drawingLayers = buttonTapped.layer.sublayers {
+                    for layer in drawingLayers {
+                        if layer is CAShapeLayer {
+                            layer.removeFromSuperlayer()
+                        }
+                    }
+                }
                 
+                if let month = eventsModel.formattedEvents[dateTapped.year]
+                {
+                    if let _ = month[dateTapped.month]
+                    {
+                        eventsModel.formattedEvents[dateTapped.year]![dateTapped.month]![dateTapped.day] = nil
+                    }
+                    else {
+                    }
+                }
+                else {
+                }
             }
         }
         else {
+            let nextDay = dateTapped.getNextDay()
+            let previousDay = dateTapped.getPreviousDay()
+            
+            let nextDayEvent = eventsModel.getEventTypeForDate(nextDay)
+            let previousDayEvent = eventsModel.getEventTypeForDate(previousDay)
+            
+            
+            
+            if (nextDayEvent == nil || nextDayEvent == EventType.ConfirmedEvent || nextDayEvent == EventType.UnconfirmedEvent) && (previousDayEvent == nil || previousDayEvent == EventType.ConfirmedEvent || previousDayEvent == EventType.UnconfirmedEvent) {
+                addEventHighlights(buttonTapped, highlightType: EventType.SingleDayUnavailable)
+                updateModel(dateTapped, eventType: EventType.SingleDayUnavailable)
+            }
+            else if nextDayEvent == EventType.StartUnavailable && previousDayEvent == EventType.EndUnavailable {
+                addEventHighlights(buttonTapped, highlightType: EventType.IntermediateUnavailable)
+                updateModel(dateTapped, eventType: EventType.IntermediateUnavailable)
+                updateModel(nextDay, eventType: EventType.IntermediateUnavailable)
+                updateModel(previousDay, eventType: EventType.IntermediateUnavailable)
+                
+                if nextDay.month == dateTapped.month {
+                    let nextDayButton = buttonsView.viewWithTag(nextDay.day)!
+                    let previousDayButton = buttonsView.viewWithTag(previousDay.day)!
+                    if let drawingLayers = nextDayButton.layer.sublayers {
+                        for layer in drawingLayers {
+                            if layer is CAShapeLayer {
+                                layer.removeFromSuperlayer()
+                            }
+                        }
+                    }
+                    addEventHighlights(nextDayButton, highlightType: EventType.IntermediateUnavailable)
+                }
+                else {
+                    if let delegate = delegate {
+                        delegate.didUpdateEvents()
+                    }
+                }
+                
+                if previousDay.month == dateTapped.month {
+                    let nextDayButton = buttonsView.viewWithTag(nextDay.day)!
+                    let previousDayButton = buttonsView.viewWithTag(previousDay.day)!
+                    if let drawingLayers = previousDayButton.layer.sublayers {
+                        for layer in drawingLayers {
+                            if layer is CAShapeLayer {
+                                layer.removeFromSuperlayer()
+                            }
+                        }
+                    }
+                    addEventHighlights(previousDayButton, highlightType: EventType.IntermediateUnavailable)
+                }
+                else {
+                    if let delegate = delegate {
+                        delegate.didUpdateEvents()
+                    }
+                }
+            }
+            else if (nextDayEvent == nil || nextDayEvent == EventType.ConfirmedEvent || nextDayEvent == EventType.UnconfirmedEvent) && previousDayEvent == EventType.EndUnavailable {
+                addEventHighlights(buttonTapped, highlightType: EventType.EndUnavailable)
+                updateModel(dateTapped, eventType: EventType.EndUnavailable)
+                updateModel(previousDay, eventType: EventType.IntermediateUnavailable)
+                
+                if previousDay.month == dateTapped.month {
+                    let nextDayButton = buttonsView.viewWithTag(nextDay.day)!
+                    let previousDayButton = buttonsView.viewWithTag(previousDay.day)!
+                    if let drawingLayers = previousDayButton.layer.sublayers {
+                        for layer in drawingLayers {
+                            if layer is CAShapeLayer {
+                                layer.removeFromSuperlayer()
+                            }
+                        }
+                    }
+                    addEventHighlights(previousDayButton, highlightType: EventType.IntermediateUnavailable)
+                }
+                else {
+                    if let delegate = delegate {
+                        delegate.didUpdateEvents()
+                    }
+                }
+            }
+            else if nextDayEvent == EventType.StartUnavailable && (previousDayEvent == nil || previousDayEvent == EventType.ConfirmedEvent || previousDayEvent == EventType.UnconfirmedEvent) {
+                addEventHighlights(buttonTapped, highlightType: EventType.StartUnavailable)
+                updateModel(dateTapped, eventType: EventType.StartUnavailable)
+                updateModel(nextDay, eventType: EventType.IntermediateUnavailable)
+                
+                if nextDay.month == dateTapped.month {
+                    let nextDayButton = buttonsView.viewWithTag(nextDay.day)!
+                    let previousDayButton = buttonsView.viewWithTag(previousDay.day)!
+                    if let drawingLayers = nextDayButton.layer.sublayers {
+                        for layer in drawingLayers {
+                            if layer is CAShapeLayer {
+                                layer.removeFromSuperlayer()
+                            }
+                        }
+                    }
+                    addEventHighlights(nextDayButton, highlightType: EventType.IntermediateUnavailable)
+                }
+                else {
+                    if let delegate = delegate {
+                        delegate.didUpdateEvents()
+                    }
+                }
+            }
+            else if nextDayEvent == EventType.SingleDayUnavailable && previousDayEvent == EventType.SingleDayUnavailable {
+                addEventHighlights(buttonTapped, highlightType: EventType.IntermediateUnavailable)
+                updateModel(dateTapped, eventType: EventType.IntermediateUnavailable)
+                updateModel(nextDay, eventType: EventType.EndUnavailable)
+                updateModel(previousDay, eventType: EventType.StartUnavailable)
+                
+                if nextDay.month == dateTapped.month {
+                    let nextDayButton = buttonsView.viewWithTag(nextDay.day)!
+                    let previousDayButton = buttonsView.viewWithTag(previousDay.day)!
+                    if let drawingLayers = nextDayButton.layer.sublayers {
+                        for layer in drawingLayers {
+                            if layer is CAShapeLayer {
+                                layer.removeFromSuperlayer()
+                            }
+                        }
+                    }
+                    addEventHighlights(nextDayButton, highlightType: EventType.EndUnavailable)
+                }
+                else {
+                    if let delegate = delegate {
+                        delegate.didUpdateEvents()
+                    }
+                }
+                
+                if previousDay.month == dateTapped.month {
+                    let nextDayButton = buttonsView.viewWithTag(nextDay.day)!
+                    let previousDayButton = buttonsView.viewWithTag(previousDay.day)!
+                    if let drawingLayers = previousDayButton.layer.sublayers {
+                        for layer in drawingLayers {
+                            if layer is CAShapeLayer {
+                                layer.removeFromSuperlayer()
+                            }
+                        }
+                    }
+                    addEventHighlights(previousDayButton, highlightType: EventType.StartUnavailable)
+                }
+                else {
+                    if let delegate = delegate {
+                        delegate.didUpdateEvents()
+                    }
+                }
+            }
+            else if (nextDayEvent == nil || nextDayEvent == EventType.ConfirmedEvent || nextDayEvent == EventType.UnconfirmedEvent) && previousDayEvent == EventType.SingleDayUnavailable {
+                addEventHighlights(buttonTapped, highlightType: EventType.EndUnavailable)
+                updateModel(dateTapped, eventType: EventType.EndUnavailable)
+                updateModel(previousDay, eventType: EventType.StartUnavailable)
+                
+                if previousDay.month == dateTapped.month {
+                    let nextDayButton = buttonsView.viewWithTag(nextDay.day)!
+                    let previousDayButton = buttonsView.viewWithTag(previousDay.day)!
+                    if let drawingLayers = previousDayButton.layer.sublayers {
+                        for layer in drawingLayers {
+                            if layer is CAShapeLayer {
+                                layer.removeFromSuperlayer()
+                            }
+                        }
+                    }
+                    addEventHighlights(previousDayButton, highlightType: EventType.StartUnavailable)
+                }
+                else {
+                    if let delegate = delegate {
+                        delegate.didUpdateEvents()
+                    }
+                }
+            }
+            else if nextDayEvent ==  EventType.SingleDayUnavailable && (previousDayEvent == nil || previousDayEvent == EventType.ConfirmedEvent || previousDayEvent == EventType.UnconfirmedEvent) {
+                addEventHighlights(buttonTapped, highlightType: EventType.StartUnavailable)
+                updateModel(dateTapped, eventType: EventType.StartUnavailable)
+                updateModel(nextDay, eventType: EventType.EndUnavailable)
+                
+                if nextDay.month == dateTapped.month {
+                    let nextDayButton = buttonsView.viewWithTag(nextDay.day)!
+                    let previousDayButton = buttonsView.viewWithTag(previousDay.day)!
+                    if let drawingLayers = nextDayButton.layer.sublayers {
+                        for layer in drawingLayers {
+                            if layer is CAShapeLayer {
+                                layer.removeFromSuperlayer()
+                            }
+                        }
+                    }
+                    addEventHighlights(nextDayButton, highlightType: EventType.EndUnavailable)
+                }
+                else {
+                    if let delegate = delegate {
+                        delegate.didUpdateEvents()
+                    }
+                }
+            }
+            else if nextDayEvent == EventType.SingleDayUnavailable && previousDayEvent == EventType.EndUnavailable {
+                addEventHighlights(buttonTapped, highlightType: EventType.IntermediateUnavailable)
+                updateModel(dateTapped, eventType: EventType.IntermediateUnavailable)
+                updateModel(nextDay, eventType: EventType.EndUnavailable)
+                updateModel(previousDay, eventType: EventType.IntermediateUnavailable)
+                
+                if nextDay.month == dateTapped.month {
+                    let nextDayButton = buttonsView.viewWithTag(nextDay.day)!
+                    let previousDayButton = buttonsView.viewWithTag(previousDay.day)!
+                    if let drawingLayers = nextDayButton.layer.sublayers {
+                        for layer in drawingLayers {
+                            if layer is CAShapeLayer {
+                                layer.removeFromSuperlayer()
+                            }
+                        }
+                    }
+                    addEventHighlights(nextDayButton, highlightType: EventType.EndUnavailable)
+                }
+                else {
+                    if let delegate = delegate {
+                        delegate.didUpdateEvents()
+                    }
+                }
+                
+                if previousDay.month == dateTapped.month {
+                    let nextDayButton = buttonsView.viewWithTag(nextDay.day)!
+                    let previousDayButton = buttonsView.viewWithTag(previousDay.day)!
+                    if let drawingLayers = previousDayButton.layer.sublayers {
+                        for layer in drawingLayers {
+                            if layer is CAShapeLayer {
+                                layer.removeFromSuperlayer()
+                            }
+                        }
+                    }
+                    addEventHighlights(previousDayButton, highlightType: EventType.IntermediateUnavailable)
+                }
+                else {
+                    if let delegate = delegate {
+                        delegate.didUpdateEvents()
+                    }
+                }
+            }
+            else if nextDayEvent == EventType.StartUnavailable && previousDayEvent == EventType.SingleDayUnavailable {
+                addEventHighlights(buttonTapped, highlightType: EventType.IntermediateUnavailable)
+                updateModel(dateTapped, eventType: EventType.IntermediateUnavailable)
+                updateModel(nextDay, eventType: EventType.IntermediateUnavailable)
+                updateModel(previousDay, eventType: EventType.StartUnavailable)
+                
+                if nextDay.month == dateTapped.month {
+                    let nextDayButton = buttonsView.viewWithTag(nextDay.day)!
+                    let previousDayButton = buttonsView.viewWithTag(previousDay.day)!
+                    if let drawingLayers = nextDayButton.layer.sublayers {
+                        for layer in drawingLayers {
+                            if layer is CAShapeLayer {
+                                layer.removeFromSuperlayer()
+                            }
+                        }
+                    }
+                    addEventHighlights(nextDayButton, highlightType: EventType.IntermediateUnavailable)
+                }
+                else {
+                    if let delegate = delegate {
+                        delegate.didUpdateEvents()
+                    }
+                }
+                
+                if previousDay.month == dateTapped.month {
+                    let nextDayButton = buttonsView.viewWithTag(nextDay.day)!
+                    let previousDayButton = buttonsView.viewWithTag(previousDay.day)!
+                    if let drawingLayers = previousDayButton.layer.sublayers {
+                        for layer in drawingLayers {
+                            if layer is CAShapeLayer {
+                                layer.removeFromSuperlayer()
+                            }
+                        }
+                    }
+                    addEventHighlights(previousDayButton, highlightType: EventType.StartUnavailable)
+                }
+                else {
+                    if let delegate = delegate {
+                        delegate.didUpdateEvents()
+                    }
+                }
+            }
             
         }
         
-        
     }
+
+    
+    func updateModel(dateStructure: DateStructure, eventType: EventType) {
+        
+        if let month = eventsModel.formattedEvents[dateStructure.year] {
+            if let _ = month[dateStructure.month] {
+                eventsModel.formattedEvents[dateStructure.year]![dateStructure.month]![dateStructure.day] = eventType
+            }
+            else {
+                eventsModel.formattedEvents[dateStructure.year]![dateStructure.month] = [dateStructure.day: eventType]
+            }
+        }
+        else {
+            eventsModel.formattedEvents[dateStructure.year] = [dateStructure.month: [dateStructure.day: eventType]]
+        }
+    }
+    
 }
