@@ -15,7 +15,7 @@ class CalendarEventsModel: NSObject {
     var continuousEvents = [continuousEventStruct]()
     var continuousEventsFormatted = [continuousEventsSplitStruct]()
     
-    var formattedMonth = [Int: [Int: [Int: EventType]]]()
+    var formattedEvents = [Int: [Int: [Int: EventType]]]()
     
     func formatEvents(circularEvents: [eventHighlightStruct], continuousEvents: [continuousEventStruct]) {
         self.events = circularEvents
@@ -26,51 +26,79 @@ class CalendarEventsModel: NSObject {
         
         for event in events {
             let eventDate = event.eventDate.convertToDateStructure()
-            if let month = formattedMonth[eventDate.year] {
+            if let month = formattedEvents[eventDate.year] {
                 if let _ = month[eventDate.month] {
-                    formattedMonth[eventDate.year]![eventDate.month]![eventDate.day] = event.highlightType
+                    formattedEvents[eventDate.year]![eventDate.month]![eventDate.day] = event.highlightType
                 }
                 else {
-                    formattedMonth[eventDate.year]![eventDate.month] = [eventDate.day: event.highlightType]
+                    formattedEvents[eventDate.year]![eventDate.month] = [eventDate.day: event.highlightType]
                 }
             }
             else {
-                formattedMonth[eventDate.year] = [eventDate.month: [eventDate.day: event.highlightType]]
+                formattedEvents[eventDate.year] = [eventDate.month: [eventDate.day: event.highlightType]]
             }
         }
         
         for contEvents in continuousEvents {
-            let startDate = contEvents.startDate
-            let endDate = contEvents.endDate
+            let startDate = contEvents.startDate.stripAttributes()
+            let endDate = contEvents.endDate.stripAttributes()
             
-            var movingDate = startDate
-            while movingDate == endDate {
-                var event = EventType.StartUnavailable
-                if movingDate == startDate {
-                    event = EventType.StartUnavailable
-                }
-                else if movingDate == endDate {
-                    event = EventType.EndUnavailable
-                }
-                else {
-                    event = EventType.IntermediateUnavailable
-                }
-                
-                if let month = formattedMonth[movingDate.convertToDateStructure().year] {
-                    if let _ = month[movingDate.convertToDateStructure().month] {
-                        formattedMonth[movingDate.convertToDateStructure().year]![movingDate.convertToDateStructure().month]![movingDate.convertToDateStructure().day] = event
+            let event = EventType.SingleDayUnavailable
+            if DateStructure.areEqual(startDate.convertToDateStructure(), date2: endDate.convertToDateStructure()) {
+                if let month = formattedEvents[startDate.convertToDateStructure().year] {
+                    if let _ = month[startDate.convertToDateStructure().month] {
+                        formattedEvents[startDate.convertToDateStructure().year]![startDate.convertToDateStructure().month]![startDate.convertToDateStructure().day] = event
                     }
                     else {
-                        formattedMonth[movingDate.convertToDateStructure().year]![movingDate.convertToDateStructure().month] = [movingDate.convertToDateStructure().day: event]
+                        formattedEvents[startDate.convertToDateStructure().year]![startDate.convertToDateStructure().month] = [startDate.convertToDateStructure().day: event]
                     }
                 }
                 else {
-                    formattedMonth[movingDate.convertToDateStructure().year] = [movingDate.convertToDateStructure().month: [movingDate.convertToDateStructure().day: event]]
+                    formattedEvents[startDate.convertToDateStructure().year] = [startDate.convertToDateStructure().month: [startDate.convertToDateStructure().day: event]]
                 }
-                movingDate = NSCalendar.currentCalendar().dateByAddingUnit(.Day, value: 1, toDate: movingDate, options: NSCalendarOptions(rawValue: 0))!
             }
-            
+            else {
+                var movingDate = startDate
+                while movingDate != endDate {
+                    var movingEvent = EventType.StartUnavailable
+                    if movingDate == startDate {
+                        movingEvent = EventType.StartUnavailable
+                    }
+                    else if movingDate == endDate {
+                        movingEvent = EventType.EndUnavailable
+                    }
+                    else {
+                        movingEvent = EventType.IntermediateUnavailable
+                    }
+                    
+                    let movingDateFormatted = movingDate.convertToDateStructure()
+                    if let month = formattedEvents[movingDateFormatted.year] {
+                        if let _ = month[movingDateFormatted.month] {
+                            formattedEvents[movingDateFormatted.year]![movingDateFormatted.month]![movingDateFormatted.day] = movingEvent
+                        }
+                        else {
+                            formattedEvents[movingDateFormatted.year]![movingDateFormatted.month] = [movingDateFormatted.day: movingEvent]
+                        }
+                    }
+                    else {
+                        formattedEvents[movingDateFormatted.year] = [movingDateFormatted.month: [movingDateFormatted.day: movingEvent]]
+                    }
+                    movingDate = NSCalendar.currentCalendar().dateByAddingUnit(.Day, value: 1, toDate: movingDate, options: NSCalendarOptions(rawValue: 0))!.stripAttributes()
+                }
+                let endDateFormatted = endDate.convertToDateStructure()
+                let endEvent = EventType.EndUnavailable
+                if let month = formattedEvents[endDateFormatted.year] {
+                    if let _ = month[endDateFormatted.month] {
+                        formattedEvents[endDateFormatted.year]![endDateFormatted.month]![endDateFormatted.day] = endEvent
+                    }
+                    else {
+                        formattedEvents[endDateFormatted.year]![endDateFormatted.month] = [endDateFormatted.day: endEvent]
+                    }
+                }
+                else {
+                    formattedEvents[endDateFormatted.year] = [endDateFormatted.month: [endDateFormatted.day: endEvent]]
+                }
+            }
         }
-        
     }
 }

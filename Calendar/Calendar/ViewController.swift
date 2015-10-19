@@ -63,6 +63,7 @@ class ViewController: UIViewController, CustomizableCalendarDelegate, Customizab
         myCalendar.todayButton(sender)
     }
     
+    
     func eventDetails(calendar: CustomizableCalendar) -> [eventHighlightStruct] {
         var arrayOfred : [eventHighlightStruct] = []
         for events in eventsForRed {

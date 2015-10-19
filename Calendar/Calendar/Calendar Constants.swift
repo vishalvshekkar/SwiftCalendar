@@ -151,7 +151,7 @@ enum EventType {
     case StartUnavailable
     case EndUnavailable
     case IntermediateUnavailable
-    
+    case SingleDayUnavailable
     
 }
 
@@ -169,7 +169,9 @@ extension NSDate {
     }
     
     func stripAttributes() -> NSDate {
-        
+        let formatter = NSDateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.dateFromString(formatter.stringFromDate(self))!
     }
 }
 

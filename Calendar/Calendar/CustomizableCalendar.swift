@@ -33,6 +33,7 @@ struct DefaultCalendarProperties {
     
     let presentYearSectionIndex = 10
     
+    
     var calendarBackgroundColor = UIColor.blackColor()
     var dateColor = UIColor.whiteColor()
     var dateHighlightedColor = UIColor.grayColor()
@@ -59,6 +60,8 @@ struct DefaultCalendarProperties {
 class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UIScrollViewDelegate {
     
     private let dateHelper = DateHelper()
+    let eventsModel = CalendarEventsModel()
+    
     var defaultCalendarProperties = DefaultCalendarProperties()
     var events = CalendarEventsModel()
     
@@ -120,20 +123,14 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
     override func layoutSubviews() {
         
         if let dataSource = self.dataSource {
-            events.numberOfEventTypes = dataSource.numberOfeventTypes(self)
-            for eventType in 0..<events.numberOfEventTypes {
-                events.events.append(dataSource.eventDetails(self, forEventType: eventType))
-            }
-            
-            events.continuousEvents = dataSource.continuousEvent(self)
-            
+            eventsModel.formatEvents(dataSource.eventDetails(self), continuousEvents: dataSource.continuousEvent(self))
         }
         
         if let delegate = self.delegate {
             let changesMade = monthYearStructure(fromMonth: dateHelper.getDate().month, fromMonthName: monthDictionary[dateHelper.getDate().month]!, fromYear: dateHelper.getDate().year, toMonth: dateHelper.getDate().month, toMonthName: monthDictionary[dateHelper.getDate().month]!, toYear: dateHelper.getDate().year)
             delegate.calendar(self, monthChange: changesMade)
         }
-        setToday()
+//        setToday()
         setUpCollectionView()
     }
     
@@ -509,55 +506,8 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
                         buttonsView.addSubview(yearLabel)
                     }
                     
-                    for eventType in events.events {
-                        let highlightImage = eventType.highlightImage
-                        let events = eventType.eventsList
-                        for event in events {
-                            let formatter = NSDateFormatter()
-                            formatter.dateFormat = "yyyy-MM-dd HH:mm:ss ZZZ"
-                            let localDateTime = formatter.stringFromDate(event)
-                            let eventStructure = DateStructure(day: Int(localDateTime.substringWithRange(Range<String.Index>(start: localDateTime.startIndex.advancedBy(8), end: localDateTime.startIndex.advancedBy(10))))!, month: Int(localDateTime.substringWithRange(Range<String.Index>(start: localDateTime.startIndex.advancedBy(5), end: localDateTime.startIndex.advancedBy(7))))!, year: Int(localDateTime.substringWithRange(Range<String.Index>(start: localDateTime.startIndex.advancedBy(0), end: localDateTime.startIndex.advancedBy(4))))!)
-                            if date1.year == eventStructure.year && date1.month == eventStructure.month && days+1 == eventStructure.day {
-                                //                                dateButtons[days].setBackgroundImage(highlightImage, forState: UIControlState.Normal)
-                                let circleShapeLayer = CAShapeLayer()
-                                circleShapeLayer.frame = CGRect(x: dateButtons[days].frame.size.width*((1 - defaultCalendarProperties.eventFitScale)/2) + defaultCalendarProperties.eventCircleWidth/2, y: dateButtons[days].frame.size.height*((1 - defaultCalendarProperties.eventFitScale)/2) + defaultCalendarProperties.eventCircleWidth/2, width: dateButtons[days].frame.size.width*defaultCalendarProperties.eventFitScale - defaultCalendarProperties.eventCircleWidth/2, height: dateButtons[days].frame.size.height*defaultCalendarProperties.eventFitScale - defaultCalendarProperties.eventCircleWidth/2)
-                                circleShapeLayer.zPosition = -1
-                                dateButtons[days].layer.addSublayer(circleShapeLayer)
-                                circleShapeLayer.fillColor = UIColor.clearColor().CGColor
-                                circleShapeLayer.strokeColor = defaultCalendarProperties.eventColor.CGColor
-                                circleShapeLayer.lineWidth = defaultCalendarProperties.eventCircleWidth
-                                circleShapeLayer.path = UIBezierPath(roundedRect: circleShapeLayer.bounds, byRoundingCorners: UIRectCorner.AllCorners, cornerRadii: CGSize(width: circleShapeLayer.frame.size.height/2, height: circleShapeLayer.frame.size.height/2)).CGPath
-                            }
-                        }
-                    }
-                    
-                    for contEvent in events.continuousEventsFormatted {
-                        
-                        if contEvent.isSingleDayEvent {
-                            if DateStructure.areEqual(now, date2: contEvent.startDate) {
-                                let circleShapeLayer = CAShapeLayer()
-                                circleShapeLayer.frame = CGRect(x: dateButtons[days].frame.size.width*((1 - defaultCalendarProperties.eventFitScale)/2), y: dateButtons[days].frame.size.height*((1 - defaultCalendarProperties.eventFitScale)/2), width: dateButtons[days].frame.size.width*defaultCalendarProperties.eventFitScale, height: dateButtons[days].frame.size.height*defaultCalendarProperties.eventFitScale)
-                                circleShapeLayer.zPosition = -2
-                                dateButtons[days].layer.addSublayer(circleShapeLayer)
-                                circleShapeLayer.fillColor = defaultCalendarProperties.continuousEventColor.CGColor
-                                circleShapeLayer.path = UIBezierPath(roundedRect: circleShapeLayer.bounds, byRoundingCorners: UIRectCorner.AllCorners, cornerRadii: CGSize(width: circleShapeLayer.frame.size.height/2, height: circleShapeLayer.frame.size.height/2)).CGPath
-                            }
-                        }
-                        else {
-                            if DateStructure.areEqual(now, date2: contEvent.startDate) {
-                                print("Start Date")
-                                addContinuousEventHighlight(dateButtons[days], highlightType: ContinuousEventHighlightType.StartDate)
-                            }
-                            else if DateStructure.isDateInBetween(now, lowerDate: contEvent.startDate, higherDate: contEvent.endDate) {
-                                print("Middle Date")
-                                addContinuousEventHighlight(dateButtons[days], highlightType: ContinuousEventHighlightType.IntermediateDate)
-                            }
-                            else if DateStructure.areEqual(now, date2: contEvent.endDate) {
-                                print("End Date")
-                                addContinuousEventHighlight(dateButtons[days], highlightType: ContinuousEventHighlightType.EndDate)
-                            }
-                        }
-                        
+                    if let eventType = eventsModel.formattedEvents[now.year]?[now.month]?[now.day] {
+                        addEventHighlights(dateButtons[days], highlightType: eventType)
                     }
                     
                     dateButtons[days].tag = days + 1
@@ -581,8 +531,8 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
         return baseView
     }
     
-    func addContinuousEventHighlight(viewToAddOn: UIView, highlightType: ContinuousEventHighlightType) {
-        if highlightType == ContinuousEventHighlightType.StartDate {
+    func addEventHighlights(viewToAddOn: UIView, highlightType: EventType) {
+        if highlightType == EventType.StartUnavailable {
             let circleShapeLayer = CAShapeLayer()
             circleShapeLayer.frame = CGRect(x: viewToAddOn.frame.size.width*((1 - defaultCalendarProperties.eventFitScale)/2), y: viewToAddOn.frame.size.height*((1 - defaultCalendarProperties.eventFitScale)/2), width: viewToAddOn.frame.size.width*defaultCalendarProperties.eventFitScale, height: viewToAddOn.frame.size.height*defaultCalendarProperties.eventFitScale)
             circleShapeLayer.zPosition = -2
@@ -597,7 +547,7 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
             viewToAddOn.layer.addSublayer(rectangleShapeLayer)
             rectangleShapeLayer.fillColor = defaultCalendarProperties.continuousEventColor.CGColor
         }
-        else if highlightType == ContinuousEventHighlightType.IntermediateDate {
+        else if highlightType == EventType.IntermediateUnavailable {
             let rectangleShapeLayer = CAShapeLayer()
             rectangleShapeLayer.frame = CGRect(x: 0, y: viewToAddOn.frame.size.height*((1 - defaultCalendarProperties.eventFitScale)/2), width: viewToAddOn.frame.size.width+1, height: viewToAddOn.frame.size.height*defaultCalendarProperties.eventFitScale)
             rectangleShapeLayer.zPosition = -2
@@ -605,7 +555,7 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
             viewToAddOn.layer.addSublayer(rectangleShapeLayer)
             rectangleShapeLayer.fillColor = defaultCalendarProperties.continuousEventColor.CGColor
         }
-        else {
+        else if highlightType == EventType.EndUnavailable {
             let circleShapeLayer = CAShapeLayer()
             circleShapeLayer.frame = CGRect(x: viewToAddOn.frame.size.width*((1 - defaultCalendarProperties.eventFitScale)/2), y: viewToAddOn.frame.size.height*((1 - defaultCalendarProperties.eventFitScale)/2), width: viewToAddOn.frame.size.width*defaultCalendarProperties.eventFitScale, height: viewToAddOn.frame.size.height*defaultCalendarProperties.eventFitScale)
             circleShapeLayer.zPosition = -2
@@ -619,6 +569,34 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
             rectangleShapeLayer.path = UIBezierPath(rect: CGRect(x: 0, y: 0, width: rectangleShapeLayer.frame.size.width, height: rectangleShapeLayer.frame.size.height)).CGPath
             viewToAddOn.layer.addSublayer(rectangleShapeLayer)
             rectangleShapeLayer.fillColor = defaultCalendarProperties.continuousEventColor.CGColor
+        }
+        else if highlightType == EventType.SingleDayUnavailable {
+            let circleShapeLayer = CAShapeLayer()
+            circleShapeLayer.frame = CGRect(x: viewToAddOn.frame.size.width*((1 - defaultCalendarProperties.eventFitScale)/2), y: viewToAddOn.frame.size.height*((1 - defaultCalendarProperties.eventFitScale)/2), width: viewToAddOn.frame.size.width*defaultCalendarProperties.eventFitScale, height: viewToAddOn.frame.size.height*defaultCalendarProperties.eventFitScale)
+            circleShapeLayer.zPosition = -2
+            viewToAddOn.layer.addSublayer(circleShapeLayer)
+            circleShapeLayer.fillColor = defaultCalendarProperties.continuousEventColor.CGColor
+            circleShapeLayer.path = UIBezierPath(roundedRect: circleShapeLayer.bounds, byRoundingCorners: UIRectCorner.AllCorners, cornerRadii: CGSize(width: circleShapeLayer.frame.size.height/2, height: circleShapeLayer.frame.size.height/2)).CGPath
+        }
+        else if highlightType == EventType.UnconfirmedEvent {
+            let circleShapeLayer = CAShapeLayer()
+            circleShapeLayer.frame = CGRect(x: viewToAddOn.frame.size.width*((1 - defaultCalendarProperties.eventFitScale)/2) + defaultCalendarProperties.eventCircleWidth/2, y: viewToAddOn.frame.size.height*((1 - defaultCalendarProperties.eventFitScale)/2) + defaultCalendarProperties.eventCircleWidth/2, width: viewToAddOn.frame.size.width*defaultCalendarProperties.eventFitScale - defaultCalendarProperties.eventCircleWidth/2, height: viewToAddOn.frame.size.height*defaultCalendarProperties.eventFitScale - defaultCalendarProperties.eventCircleWidth/2)
+            circleShapeLayer.zPosition = -1
+            viewToAddOn.layer.addSublayer(circleShapeLayer)
+            circleShapeLayer.fillColor = UIColor.clearColor().CGColor
+            circleShapeLayer.strokeColor = UIColor.redColor().CGColor
+            circleShapeLayer.lineWidth = defaultCalendarProperties.eventCircleWidth
+            circleShapeLayer.path = UIBezierPath(roundedRect: circleShapeLayer.bounds, byRoundingCorners: UIRectCorner.AllCorners, cornerRadii: CGSize(width: circleShapeLayer.frame.size.height/2, height: circleShapeLayer.frame.size.height/2)).CGPath
+        }
+        else if highlightType == EventType.ConfirmedEvent {
+            let circleShapeLayer = CAShapeLayer()
+            circleShapeLayer.frame = CGRect(x: viewToAddOn.frame.size.width*((1 - defaultCalendarProperties.eventFitScale)/2) + defaultCalendarProperties.eventCircleWidth/2, y: viewToAddOn.frame.size.height*((1 - defaultCalendarProperties.eventFitScale)/2) + defaultCalendarProperties.eventCircleWidth/2, width: viewToAddOn.frame.size.width*defaultCalendarProperties.eventFitScale - defaultCalendarProperties.eventCircleWidth/2, height: viewToAddOn.frame.size.height*defaultCalendarProperties.eventFitScale - defaultCalendarProperties.eventCircleWidth/2)
+            circleShapeLayer.zPosition = -1
+            viewToAddOn.layer.addSublayer(circleShapeLayer)
+            circleShapeLayer.fillColor = UIColor.clearColor().CGColor
+            circleShapeLayer.strokeColor = defaultCalendarProperties.eventColor.CGColor
+            circleShapeLayer.lineWidth = defaultCalendarProperties.eventCircleWidth
+            circleShapeLayer.path = UIBezierPath(roundedRect: circleShapeLayer.bounds, byRoundingCorners: UIRectCorner.AllCorners, cornerRadii: CGSize(width: circleShapeLayer.frame.size.height/2, height: circleShapeLayer.frame.size.height/2)).CGPath
         }
     }
     
