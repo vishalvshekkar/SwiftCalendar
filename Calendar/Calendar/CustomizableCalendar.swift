@@ -71,13 +71,14 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
     
     var monthsInMemory = [UIView]()
     var monthsArray = [DateStructure]()
+    var cellItemSize = CGSize()
     
     var date = DateStructure(day: 0, month: 0, year: 0)
     
     var calendarFrame = defaultFrameForCalendar
     var fullFrame: CGRect!
     
-    let calendarMonthCellIdentifier = "cell"
+    let calendarMonthCellIdentifier = "CalendarMonthCell"
     
     var calendarCollectionView : UICollectionView!
     var calendarDirection : UICollectionViewScrollDirection = .Vertical
@@ -94,19 +95,23 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
             fullFrame = frame
             calendarFrame = CGRect(x: 0, y: 0, width: fullFrame.width, height: fullFrame.width)
             calendarDirection = .Vertical
-            layout.itemSize = CGSize(width: fullFrame.width, height: fullFrame.width)
+            cellItemSize = CGSize(width: fullFrame.width, height: fullFrame.width)
+            layout.itemSize = cellItemSize
+            
         }
         else if calendarType == CalendarType.SimpleHorizontal {
             fullFrame = frame
             calendarFrame = frame
             calendarDirection = .Horizontal
-            layout.itemSize = calendarFrame.size
+            cellItemSize = calendarFrame.size
+            layout.itemSize = cellItemSize
         }
         else {
             fullFrame = frame
             calendarFrame = frame
             calendarDirection = .Vertical
-            layout.itemSize = calendarFrame.size
+            cellItemSize = calendarFrame.size
+            layout.itemSize = cellItemSize
         }
         layout.scrollDirection = calendarDirection
         layout.minimumInteritemSpacing = 0
@@ -150,6 +155,7 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
         }
         self.backgroundColor = defaultCalendarProperties.calendarBackgroundColor
         calendarCollectionView.registerClass(UICollectionViewCell.self, forCellWithReuseIdentifier: calendarMonthCellIdentifier)
+//        calendarCollectionView.registerClass(MonthView.self, forCellWithReuseIdentifier: calendarMonthCellIdentifier)
         calendarCollectionView.pagingEnabled = false
         for subView in self.subviews {
             subView.removeFromSuperview()
@@ -170,12 +176,13 @@ class CustomizableCalendar: UIView, UICollectionViewDataSource, UICollectionView
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         let cell = calendarCollectionView.dequeueReusableCellWithReuseIdentifier(calendarMonthCellIdentifier, forIndexPath: indexPath)
         cell.backgroundColor = UIColor.clearColor()
-        let subViews = cell.contentView.subviews
+        let monthView = MonthView(frame: CGRect(x: 0, y: 0, width: cellItemSize.width, height: cellItemSize.height), dateStruct: provideMonths(indexPath), eventsModel: self.eventsModel)
         
+        let subViews = cell.subviews
         for sVs in subViews {
             sVs.removeFromSuperview()
         }
-        cell.contentView.addSubview(createDateButtons(provideMonths(indexPath)))
+        cell.addSubview(monthView)
         return cell
     }
     

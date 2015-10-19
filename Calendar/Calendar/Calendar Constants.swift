@@ -66,6 +66,22 @@ struct DateStructure {
             return dateStringInitial
         }
     }
+    
+    func getNextDay() -> DateStructure {
+        let formatter = NSDateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        let dateNS = formatter.dateFromString("\(self.year)-\(self.month)-\(self.day)")!
+        let nextDay = NSCalendar.currentCalendar().dateByAddingUnit(.Day, value: 1, toDate: dateNS, options: NSCalendarOptions(rawValue: 0))!.stripAttributes()
+        return nextDay.convertToDateStructure()
+    }
+    
+    func getPreviousDay() -> DateStructure {
+        let formatter = NSDateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        let dateNS = formatter.dateFromString("\(self.year)-\(self.month)-\(self.day)")!
+        let previousDay = NSCalendar.currentCalendar().dateByAddingUnit(.Day, value: -1, toDate: dateNS, options: NSCalendarOptions(rawValue: 0))!.stripAttributes()
+        return previousDay.convertToDateStructure()
+    }
 }
 
 struct monthYearStructure {

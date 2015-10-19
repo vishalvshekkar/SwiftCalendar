@@ -101,4 +101,8 @@ class CalendarEventsModel: NSObject {
             }
         }
     }
+    
+    func getEventTypeForDate(dateStruct: DateStructure) -> EventType? {
+        return self.formattedEvents[dateStruct.year]?[dateStruct.month]?[dateStruct.day]
+    }
 }
