@@ -25,8 +25,11 @@ class ViewController: UIViewController, CustomizableCalendarDelegate, Customizab
     }
     
     func calendarSetup() {
-        
-        let calendarFrame = CGRect(x: 0, y: 50, width: 375, height: 600)
+        let button = UIButton(frame: CGRect(x: 100, y: 0, width: 100, height: 50))
+        button.setTitle("Save", forState: UIControlState.Normal)
+        button.addTarget(self, action: "save:", forControlEvents: UIControlEvents.TouchUpInside)
+        view.addSubview(button)
+        let calendarFrame = CGRect(x: 0, y: 50, width: 375, height: 375)
         //        let color = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1.0)
         //        let calendarFrame = CGRect(origin: CGPointZero, size: orangeView.frame.size)
         myCalendar = CustomizableCalendar(frame: calendarFrame, calendarType: CalendarType.ElaborateVertical)
@@ -42,6 +45,12 @@ class ViewController: UIViewController, CustomizableCalendarDelegate, Customizab
         view.addSubview(myCalendar)
     }
     
+    func save(sender: AnyObject) {
+        let x = myCalendar.savePresentState(sender)
+        
+        print(x.0)
+        print(x.1)
+    }
     
     
     func doDate() {
@@ -80,11 +89,11 @@ class ViewController: UIViewController, CustomizableCalendarDelegate, Customizab
     
     
     func dateFormatRequired(calendar: CustomizableCalendar) -> String {
-        return "MM-yyyy"
+        return "dd/MM/yyyy"
     }
     
     func continuousEvent(calendar: CustomizableCalendar) -> [continuousEventStruct] {
-        return [continuousEventStruct(startDate: createNSDate("1/9/2015"), endDate: createNSDate("5/9/2015")), continuousEventStruct(startDate: createNSDate("7/09/2015"), endDate:                         createNSDate("09/09/2015")), continuousEventStruct(startDate: createNSDate("29/09/2015"), endDate: createNSDate("30/9/2015")), continuousEventStruct(startDate: createNSDate("5/10/2015"), endDate: createNSDate("8/10/2015")), continuousEventStruct(startDate: createNSDate("6/9/2015"), endDate: createNSDate("6/9/2015"))]
+        return [continuousEventStruct(startDate: createNSDate("1/9/2015"), endDate: createNSDate("5/9/2015")), continuousEventStruct(startDate: createNSDate("7/09/2015"), endDate:                         createNSDate("09/09/2015")), continuousEventStruct(startDate: createNSDate("29/09/2015"), endDate: createNSDate("30/9/2015")), continuousEventStruct(startDate: createNSDate("5/10/2015"), endDate: createNSDate("8/10/2015"))]
     }
     
     func createNSDate(dateString: String) -> NSDate {
@@ -104,6 +113,10 @@ class ViewController: UIViewController, CustomizableCalendarDelegate, Customizab
     func calendar(calendar: CustomizableCalendar, didSelectDay: DateStructure) {
         print("Date selected is \(didSelectDay.day)/\(didSelectDay.month)/\(didSelectDay.year)")
         didSelect.text = "\(didSelectDay.day)/\(didSelectDay.month)/\(didSelectDay.year)"
+    }
+    
+    func calendar(calendar: CustomizableCalendar, didSelectDay: NSDate, formattedDateString: String) {
+        print(formattedDateString)
     }
     
     

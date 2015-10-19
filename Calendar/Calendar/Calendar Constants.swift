@@ -35,6 +35,12 @@ struct DateStructure {
     var month : Int
     var year : Int
     
+    init(day: Int, month: Int, year: Int) {
+        self.day = day
+        self.month = month
+        self.year = year
+    }
+    
     static func areEqual(date1: DateStructure, date2: DateStructure) -> Bool {
         if date1.day == date2.day && date1.month == date2.month && date1.year == date2.year {
             return true
@@ -81,6 +87,12 @@ struct DateStructure {
         let dateNS = formatter.dateFromString("\(self.year)-\(self.month)-\(self.day)")!
         let previousDay = NSCalendar.currentCalendar().dateByAddingUnit(.Day, value: -1, toDate: dateNS, options: NSCalendarOptions(rawValue: 0))!.stripAttributes()
         return previousDay.convertToDateStructure()
+    }
+    
+    func getNSDate() -> NSDate {
+        let formatter = NSDateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.dateFromString("\(self.year)-\(self.month)-\(self.day)")!
     }
 }
 
@@ -188,6 +200,11 @@ extension NSDate {
         let formatter = NSDateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter.dateFromString(formatter.stringFromDate(self))!
+    }
+    
+    func getNextDay() -> NSDate {
+        
+        return NSCalendar.currentCalendar().dateByAddingUnit(.Day, value: 1, toDate: self, options: NSCalendarOptions(rawValue: 0))!.stripAttributes()
     }
 }
 

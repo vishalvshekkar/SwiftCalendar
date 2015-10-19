@@ -12,9 +12,13 @@ protocol MonthsViewDelegate {
     
     func didUpdateEvents()
     
+    func didSelectDate(date: NSDate)
+    
 }
 
 class MonthView: UIView {
+    
+    
     
     var delegate : MonthsViewDelegate!
     var defaultCalendarProperties = DefaultCalendarProperties()
@@ -24,12 +28,14 @@ class MonthView: UIView {
     var eventsModel : CalendarEventsModel
     let buttonsView = UIView()
     
-    init(frame: CGRect, dateStruct : DateStructure, eventsModel : CalendarEventsModel, delegate: MonthsViewDelegate) {
+    var calendarType : CalendarType!
+    
+    init(frame: CGRect, dateStruct : DateStructure, eventsModel : CalendarEventsModel, delegate: MonthsViewDelegate, calendarType: CalendarType) {
         self.dateStruct = dateStruct
         self.eventsModel = eventsModel
         self.delegate = delegate
         super.init(frame: frame)
-        
+        self.calendarType = calendarType
         self.addSubview(createDateButtons(self.dateStruct))
     }
     
@@ -41,10 +47,17 @@ class MonthView: UIView {
         let baseView = UIView(frame: CGRectMake(0, 0, self.frame.size.width, self.frame.size.height))
         baseView.backgroundColor = defaultCalendarProperties.calendarBackgroundColor
         baseView.tag = Int(String(date1.month) + String(date1.year))!
-        print("tag is")
-        print(baseView.tag)
-        createLabel(baseView)
-        let buttonsViewFrame = CGRectMake(0, self.frame.size.height*(1.0/7.0), self.frame.size.width, self.frame.size.height*(6.0/7.0))
+        if calendarType == CalendarType.SimpleHorizontal {
+            createLabel(baseView)
+        }
+        let buttonsViewFrame: CGRect
+        
+        if calendarType == CalendarType.ElaborateVertical {
+            buttonsViewFrame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height)
+        }
+        else {
+            buttonsViewFrame = CGRectMake(0, self.frame.size.height*(1.0/7.0), self.frame.size.width, self.frame.size.height*(6.0/7.0))
+        }
         
         buttonsView.frame = buttonsViewFrame
         buttonsView.backgroundColor = defaultCalendarProperties.calendarBackgroundColor
@@ -72,14 +85,31 @@ class MonthView: UIView {
                     dateButtons[days].setTitleColor(defaultCalendarProperties.dateHighlightedColor, forState: UIControlState.Highlighted)
                     
                     let now = DateStructure(day: days+1, month: date1.month, year: date1.year)
+                    //                    if calendarType != CalendarType.ElaborateVertical {
                     if now.year == dateHelper.getDate().year && now.month == dateHelper.getDate().month && now.day == dateHelper.getDate().day {
+                        
+                        //                            print(days)
+                        //                            let todayHighlightShapeLayer = CAShapeLayer()
+                        //                            todayHighlightShapeLayer.frame = CGRect(x: dateButtons[days].center.x - dateButtons[days].frame.size.height*0.075, y: dateButtons[days].frame.size.height*0.7, width: dateButtons[days].frame.size.height*0.15, height: dateButtons[days].frame.size.height*0.15)
+                        //                            todayHighlightShapeLayer.zPosition = -1
+                        //                            dateButtons[days].layer.addSublayer(todayHighlightShapeLayer)
+                        dateButtons[days].setTitleColor(defaultCalendarProperties.todayColor, forState: UIControlState.Normal)
+                        //                            todayHighlightShapeLayer.fillColor = defaultCalendarProperties.todayColor.CGColor
+                        //                            todayHighlightShapeLayer.path = UIBezierPath(roundedRect: todayHighlightShapeLayer.bounds, byRoundingCorners: UIRectCorner.AllCorners, cornerRadii: CGSize(width: todayHighlightShapeLayer.frame.size.height/2, height: todayHighlightShapeLayer.frame.size.height/2)).CGPath
+                        
                         let todayHighlightShapeLayer = CAShapeLayer()
-                        todayHighlightShapeLayer.frame = CGRect(x: dateButtons[days].frame.size.width*((1 - defaultCalendarProperties.eventFitScale)/2) + defaultCalendarProperties.eventCircleWidth/2, y: dateButtons[days].frame.size.height*((1 - defaultCalendarProperties.eventFitScale)/2) + defaultCalendarProperties.eventCircleWidth/2, width: dateButtons[days].frame.size.width*defaultCalendarProperties.eventFitScale - defaultCalendarProperties.eventCircleWidth/2, height: dateButtons[days].frame.size.height*defaultCalendarProperties.eventFitScale - defaultCalendarProperties.eventCircleWidth/2)
+                        todayHighlightShapeLayer.frame = CGRect(
+                            x: dateButtons[days].frame.size.width/2 - dateButtons[days].frame.size.width*0.070,
+                            y: dateButtons[days].frame.size.height*0.7,
+                            width: dateButtons[days].frame.size.width*0.15,
+                            height: dateButtons[days].frame.size.height*0.15
+                        )
                         todayHighlightShapeLayer.zPosition = -1
                         dateButtons[days].layer.addSublayer(todayHighlightShapeLayer)
                         todayHighlightShapeLayer.fillColor = defaultCalendarProperties.todayColor.CGColor
                         todayHighlightShapeLayer.path = UIBezierPath(roundedRect: todayHighlightShapeLayer.bounds, byRoundingCorners: UIRectCorner.AllCorners, cornerRadii: CGSize(width: todayHighlightShapeLayer.frame.size.height/2, height: todayHighlightShapeLayer.frame.size.height/2)).CGPath
                     }
+//                    }
                     
                     if days + 1 == 1 {
                         let monthLabel = UILabel(frame: CGRect(x: 0, y: -dateButtons[days].frame.size.height/5, width: dateButtons[days].frame.size.width, height: dateButtons[days].frame.size.height/3))
@@ -193,6 +223,11 @@ class MonthView: UIView {
         }
     }
     
+    func degreeToRadian(degree: CGFloat) -> CGFloat
+    {
+        return (CGFloat(degree) * CGFloat(M_PI)) / CGFloat(180.0)
+    }
+    
     func createLabel(viewToAddOn: UIView) {
         let labelHeight = self.frame.size.height/6.0
         let labelWidth = self.frame.size.width/7.0
@@ -210,16 +245,19 @@ class MonthView: UIView {
             dayOfWeek[i].textAlignment = .Center
             dayOfWeek[i].font = defaultCalendarProperties.dayOfWeekFont
             dayOfWeek[i].textColor = defaultCalendarProperties.daysOfWeekColor
-            //            viewToAddOn.addSubview(dayOfWeek[i])
+            viewToAddOn.addSubview(dayOfWeek[i])
         }
     }
     
     func didSelectDate(sender: UIButton)
     {
-        
+        if let delegate = delegate {
+            var dateTapped = self.dateStruct
+            dateTapped.day = sender.tag
+            delegate.didSelectDate(dateTapped.getNSDate())
+        }
         print(sender.tag)
         manageEvents(sender.tag)
-        
     }
     
     func manageEvents(buttonTag: Int) {
@@ -480,7 +518,6 @@ class MonthView: UIView {
                 
                 if nextDay.month == dateTapped.month {
                     let nextDayButton = buttonsView.viewWithTag(nextDay.day)!
-                    let previousDayButton = buttonsView.viewWithTag(previousDay.day)!
                     if let drawingLayers = nextDayButton.layer.sublayers {
                         for layer in drawingLayers {
                             if layer is CAShapeLayer {
@@ -497,7 +534,6 @@ class MonthView: UIView {
                 }
                 
                 if previousDay.month == dateTapped.month {
-                    let nextDayButton = buttonsView.viewWithTag(nextDay.day)!
                     let previousDayButton = buttonsView.viewWithTag(previousDay.day)!
                     if let drawingLayers = previousDayButton.layer.sublayers {
                         for layer in drawingLayers {
@@ -520,7 +556,6 @@ class MonthView: UIView {
                 updateModel(previousDay, eventType: EventType.IntermediateUnavailable)
                 
                 if previousDay.month == dateTapped.month {
-                    let nextDayButton = buttonsView.viewWithTag(nextDay.day)!
                     let previousDayButton = buttonsView.viewWithTag(previousDay.day)!
                     if let drawingLayers = previousDayButton.layer.sublayers {
                         for layer in drawingLayers {
@@ -544,7 +579,6 @@ class MonthView: UIView {
                 
                 if nextDay.month == dateTapped.month {
                     let nextDayButton = buttonsView.viewWithTag(nextDay.day)!
-                    let previousDayButton = buttonsView.viewWithTag(previousDay.day)!
                     if let drawingLayers = nextDayButton.layer.sublayers {
                         for layer in drawingLayers {
                             if layer is CAShapeLayer {
@@ -568,7 +602,6 @@ class MonthView: UIView {
                 
                 if nextDay.month == dateTapped.month {
                     let nextDayButton = buttonsView.viewWithTag(nextDay.day)!
-                    let previousDayButton = buttonsView.viewWithTag(previousDay.day)!
                     if let drawingLayers = nextDayButton.layer.sublayers {
                         for layer in drawingLayers {
                             if layer is CAShapeLayer {
@@ -585,7 +618,6 @@ class MonthView: UIView {
                 }
                 
                 if previousDay.month == dateTapped.month {
-                    let nextDayButton = buttonsView.viewWithTag(nextDay.day)!
                     let previousDayButton = buttonsView.viewWithTag(previousDay.day)!
                     if let drawingLayers = previousDayButton.layer.sublayers {
                         for layer in drawingLayers {
@@ -608,7 +640,6 @@ class MonthView: UIView {
                 updateModel(previousDay, eventType: EventType.StartUnavailable)
                 
                 if previousDay.month == dateTapped.month {
-                    let nextDayButton = buttonsView.viewWithTag(nextDay.day)!
                     let previousDayButton = buttonsView.viewWithTag(previousDay.day)!
                     if let drawingLayers = previousDayButton.layer.sublayers {
                         for layer in drawingLayers {
@@ -632,7 +663,6 @@ class MonthView: UIView {
                 
                 if nextDay.month == dateTapped.month {
                     let nextDayButton = buttonsView.viewWithTag(nextDay.day)!
-                    let previousDayButton = buttonsView.viewWithTag(previousDay.day)!
                     if let drawingLayers = nextDayButton.layer.sublayers {
                         for layer in drawingLayers {
                             if layer is CAShapeLayer {
@@ -656,7 +686,6 @@ class MonthView: UIView {
                 
                 if nextDay.month == dateTapped.month {
                     let nextDayButton = buttonsView.viewWithTag(nextDay.day)!
-                    let previousDayButton = buttonsView.viewWithTag(previousDay.day)!
                     if let drawingLayers = nextDayButton.layer.sublayers {
                         for layer in drawingLayers {
                             if layer is CAShapeLayer {
@@ -673,7 +702,6 @@ class MonthView: UIView {
                 }
                 
                 if previousDay.month == dateTapped.month {
-                    let nextDayButton = buttonsView.viewWithTag(nextDay.day)!
                     let previousDayButton = buttonsView.viewWithTag(previousDay.day)!
                     if let drawingLayers = previousDayButton.layer.sublayers {
                         for layer in drawingLayers {
@@ -698,7 +726,6 @@ class MonthView: UIView {
                 
                 if nextDay.month == dateTapped.month {
                     let nextDayButton = buttonsView.viewWithTag(nextDay.day)!
-                    let previousDayButton = buttonsView.viewWithTag(previousDay.day)!
                     if let drawingLayers = nextDayButton.layer.sublayers {
                         for layer in drawingLayers {
                             if layer is CAShapeLayer {
@@ -715,7 +742,6 @@ class MonthView: UIView {
                 }
                 
                 if previousDay.month == dateTapped.month {
-                    let nextDayButton = buttonsView.viewWithTag(nextDay.day)!
                     let previousDayButton = buttonsView.viewWithTag(previousDay.day)!
                     if let drawingLayers = previousDayButton.layer.sublayers {
                         for layer in drawingLayers {

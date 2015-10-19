@@ -15,7 +15,12 @@ class CalendarEventsModel: NSObject {
     var continuousEvents = [continuousEventStruct]()
     var continuousEventsFormatted = [continuousEventsSplitStruct]()
     
-    var formattedEvents = [Int: [Int: [Int: EventType]]]()
+    var initialEvents = [Int: [Int: [Int: EventType]]]()
+    var formattedEvents = [Int: [Int: [Int: EventType]]]() {
+        didSet {
+            
+        }
+    }
     
     func formatEvents(circularEvents: [eventHighlightStruct], continuousEvents: [continuousEventStruct]) {
         self.events = circularEvents
@@ -100,9 +105,77 @@ class CalendarEventsModel: NSObject {
                 }
             }
         }
+        initialEvents = formattedEvents
     }
     
     func getEventTypeForDate(dateStruct: DateStructure) -> EventType? {
         return self.formattedEvents[dateStruct.year]?[dateStruct.month]?[dateStruct.day]
+    }
+    
+    func saveEvents() -> (removedUnavailability: [NSDate], addedUnavailability: [NSDate]) {
+        var initialUnavailableDates = [NSDate]()
+        
+        for (year, monthsDictionary) in initialEvents {
+            for (month, daysDictionary) in monthsDictionary {
+                for (day, event) in daysDictionary {
+                    if (event == EventType.StartUnavailable || event == EventType.IntermediateUnavailable || event == EventType.EndUnavailable || event == EventType.SingleDayUnavailable) {
+                        initialUnavailableDates.append(DateStructure(day: day, month: month, year: year).getNSDate())
+                    }
+                }
+            }
+        }
+        
+        var finalUnavailableDates = [NSDate]()
+        
+        for (year, monthsDictionary) in formattedEvents {
+            for (month, daysDictionary) in monthsDictionary {
+                for (day, event) in daysDictionary {
+                    if (event == EventType.StartUnavailable || event == EventType.IntermediateUnavailable || event == EventType.EndUnavailable || event == EventType.SingleDayUnavailable) {
+                        finalUnavailableDates.append(DateStructure(day: day, month: month, year: year).getNSDate())
+                    }
+                }
+            }
+        }
+        
+        var initialDatesRemoveArray = [Int]()
+        var finalDatesRemoveArray = [Int]()
+        
+        var i = 0
+        
+        
+        for initialDate in initialUnavailableDates {
+            var j = 0
+            for finalDate in finalUnavailableDates {
+                if initialDate == finalDate {
+                    initialDatesRemoveArray.append(i)
+                    finalDatesRemoveArray.append(j)
+                }
+                j++
+            }
+            i++
+        }
+        
+        for var i = initialDatesRemoveArray.count - 1; i >= 0; i-- {
+            initialUnavailableDates.removeAtIndex(initialDatesRemoveArray[i])
+        }
+        
+        for var j = finalDatesRemoveArray.count - 1; j >= 0; j-- {
+            finalUnavailableDates.removeAtIndex(finalDatesRemoveArray[j])
+        }
+        
+        initialEvents = formattedEvents
+        
+        for var i = 0; i < initialUnavailableDates.count; i++ {
+            let item = initialUnavailableDates[i]
+            initialUnavailableDates[i] = item.getNextDay()
+        }
+        
+        for var i = 0; i < finalUnavailableDates.count; i++ {
+            let item = finalUnavailableDates[i]
+            finalUnavailableDates[i] = item.getNextDay()
+        }
+
+        
+        return(initialUnavailableDates, finalUnavailableDates)
     }
 }
