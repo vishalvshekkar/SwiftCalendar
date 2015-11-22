@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C962F1C01BD0CECD008E294E /* MonthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C962F1BF1BD0CECD008E294E /* MonthView.swift */; settings = {ASSET_TAGS = (); }; };
+		C962F1C31BD0E940008E294E /* CalendarEventsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C962F1C21BD0E940008E294E /* CalendarEventsModel.swift */; settings = {ASSET_TAGS = (); }; };
 		C96EE9D21BA81A5F00B375E8 /* Calendar Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96EE9D11BA81A5F00B375E8 /* Calendar Constants.swift */; };
 		C96EE9D61BA81B1800B375E8 /* DateHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96EE9D51BA81B1800B375E8 /* DateHelper.swift */; };
 		C97DA7ED1BA1540800FFAB8C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C97DA7EC1BA1540800FFAB8C /* AppDelegate.swift */; };
@@ -18,6 +20,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		C962F1BF1BD0CECD008E294E /* MonthView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MonthView.swift; sourceTree = "<group>"; };
+		C962F1C21BD0E940008E294E /* CalendarEventsModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CalendarEventsModel.swift; sourceTree = "<group>"; };
 		C96EE9D11BA81A5F00B375E8 /* Calendar Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Calendar Constants.swift"; sourceTree = "<group>"; };
 		C96EE9D51BA81B1800B375E8 /* DateHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DateHelper.swift; sourceTree = "<group>"; };
 		C97DA7E91BA1540800FFAB8C /* Calendar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Calendar.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -41,6 +45,18 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		C962F1C11BD0CF7C008E294E /* Custom Calendar */ = {
+			isa = PBXGroup;
+			children = (
+				C97DA7FE1BA1553C00FFAB8C /* CustomizableCalendar.swift */,
+				C962F1BF1BD0CECD008E294E /* MonthView.swift */,
+				C96EE9D51BA81B1800B375E8 /* DateHelper.swift */,
+				C96EE9D11BA81A5F00B375E8 /* Calendar Constants.swift */,
+				C962F1C21BD0E940008E294E /* CalendarEventsModel.swift */,
+			);
+			name = "Custom Calendar";
+			sourceTree = "<group>";
+		};
 		C97DA7E01BA1540800FFAB8C = {
 			isa = PBXGroup;
 			children = (
@@ -61,10 +77,8 @@
 			isa = PBXGroup;
 			children = (
 				C97DA7EC1BA1540800FFAB8C /* AppDelegate.swift */,
-				C97DA7FE1BA1553C00FFAB8C /* CustomizableCalendar.swift */,
-				C96EE9D51BA81B1800B375E8 /* DateHelper.swift */,
-				C96EE9D11BA81A5F00B375E8 /* Calendar Constants.swift */,
 				C97DA7EE1BA1540800FFAB8C /* ViewController.swift */,
+				C962F1C11BD0CF7C008E294E /* Custom Calendar */,
 				C97DA7F01BA1540800FFAB8C /* Main.storyboard */,
 				C97DA7F31BA1540800FFAB8C /* Assets.xcassets */,
 				C97DA7F51BA1540800FFAB8C /* LaunchScreen.storyboard */,
@@ -145,6 +159,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				C96EE9D61BA81B1800B375E8 /* DateHelper.swift in Sources */,
+				C962F1C31BD0E940008E294E /* CalendarEventsModel.swift in Sources */,
+				C962F1C01BD0CECD008E294E /* MonthView.swift in Sources */,
 				C97DA7EF1BA1540800FFAB8C /* ViewController.swift in Sources */,
 				C96EE9D21BA81A5F00B375E8 /* Calendar Constants.swift in Sources */,
 				C97DA7ED1BA1540800FFAB8C /* AppDelegate.swift in Sources */,
