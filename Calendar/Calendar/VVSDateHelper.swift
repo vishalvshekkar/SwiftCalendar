@@ -30,11 +30,8 @@ class DateHelper: NSObject {
         return numberOfDays
     }
     
-<<<<<<< HEAD:Calendar/Calendar/VVSDateHelper.swift
     static func getMonthString(month: Int, stringType: StringType) -> String {
-=======
-    func getMonthString(month: Int, stringType: StringType) -> String {
->>>>>>> origin/master:Calendar/Calendar/DateHelper.swift
+
         var monthString = String()
         
         switch month {
@@ -67,11 +64,8 @@ class DateHelper: NSObject {
         
     }
     
-<<<<<<< HEAD:Calendar/Calendar/VVSDateHelper.swift
     static func leapCheck(year:Int) -> Int {
-=======
-    func leapCheck(year:Int) -> Int {
->>>>>>> origin/master:Calendar/Calendar/DateHelper.swift
+
         if year%4 == 0 {
             if year%100 == 0 {
                 if year%400 == 0 {
@@ -88,11 +82,8 @@ class DateHelper: NSObject {
         }
     }
     
-<<<<<<< HEAD:Calendar/Calendar/VVSDateHelper.swift
     static func getDate() -> DateStructure {
-=======
-    func getDate() -> DateStructure {
->>>>>>> origin/master:Calendar/Calendar/DateHelper.swift
+
         let formatter = NSDateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss ZZZ"
         let localDateTime = formatter.stringFromDate(NSDate())
