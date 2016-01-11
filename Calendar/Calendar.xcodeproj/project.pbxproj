@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+
+		C962F1C01BD0CECD008E294E /* MonthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C962F1BF1BD0CECD008E294E /* MonthView.swift */; settings = {ASSET_TAGS = (); }; };
+		C962F1C31BD0E940008E294E /* CalendarEventsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C962F1C21BD0E940008E294E /* CalendarEventsModel.swift */; settings = {ASSET_TAGS = (); }; };
+		C96EE9D21BA81A5F00B375E8 /* Calendar Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96EE9D11BA81A5F00B375E8 /* Calendar Constants.swift */; };
+		C96EE9D61BA81B1800B375E8 /* DateHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96EE9D51BA81B1800B375E8 /* DateHelper.swift */; };
 		C97DA7ED1BA1540800FFAB8C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C97DA7EC1BA1540800FFAB8C /* AppDelegate.swift */; };
 		C97DA7EF1BA1540800FFAB8C /* CalendarTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = C97DA7EE1BA1540800FFAB8C /* CalendarTest.swift */; };
 		C97DA7F21BA1540800FFAB8C /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C97DA7F01BA1540800FFAB8C /* Main.storyboard */; };
@@ -20,6 +25,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+
+		C962F1BF1BD0CECD008E294E /* MonthView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MonthView.swift; sourceTree = "<group>"; };
+		C962F1C21BD0E940008E294E /* CalendarEventsModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CalendarEventsModel.swift; sourceTree = "<group>"; };
+		C96EE9D11BA81A5F00B375E8 /* Calendar Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Calendar Constants.swift"; sourceTree = "<group>"; };
+		C96EE9D51BA81B1800B375E8 /* DateHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DateHelper.swift; sourceTree = "<group>"; };
 		C97DA7E91BA1540800FFAB8C /* Calendar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Calendar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C97DA7EC1BA1540800FFAB8C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C97DA7EE1BA1540800FFAB8C /* CalendarTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarTest.swift; sourceTree = "<group>"; };
@@ -45,6 +55,18 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		C962F1C11BD0CF7C008E294E /* Custom Calendar */ = {
+			isa = PBXGroup;
+			children = (
+				C97DA7FE1BA1553C00FFAB8C /* CustomizableCalendar.swift */,
+				C962F1BF1BD0CECD008E294E /* MonthView.swift */,
+				C96EE9D51BA81B1800B375E8 /* DateHelper.swift */,
+				C96EE9D11BA81A5F00B375E8 /* Calendar Constants.swift */,
+				C962F1C21BD0E940008E294E /* CalendarEventsModel.swift */,
+			);
+			name = "Custom Calendar";
+			sourceTree = "<group>";
+		};
 		C97DA7E01BA1540800FFAB8C = {
 			isa = PBXGroup;
 			children = (
@@ -67,6 +89,7 @@
 				C97DA7EC1BA1540800FFAB8C /* AppDelegate.swift */,
 				C9D874BD1C4428A5007E9E3B /* VVSCalendar */,
 				C97DA7EE1BA1540800FFAB8C /* CalendarTest.swift */,
+
 				C97DA7F01BA1540800FFAB8C /* Main.storyboard */,
 				C97DA7F31BA1540800FFAB8C /* Assets.xcassets */,
 				C97DA7F51BA1540800FFAB8C /* LaunchScreen.storyboard */,
@@ -161,6 +184,7 @@
 				C97DA7EF1BA1540800FFAB8C /* CalendarTest.swift in Sources */,
 				C9D874BB1C44288E007E9E3B /* VVSMonthView.swift in Sources */,
 				C9D874B91C44288E007E9E3B /* VVSCustomizableCalendar.swift in Sources */,
+
 				C97DA7ED1BA1540800FFAB8C /* AppDelegate.swift in Sources */,
 				C9D874BA1C44288E007E9E3B /* VVSDateHelper.swift in Sources */,
 				C9D874B81C44288E007E9E3B /* VVSCalendarEventsModel.swift in Sources */,
